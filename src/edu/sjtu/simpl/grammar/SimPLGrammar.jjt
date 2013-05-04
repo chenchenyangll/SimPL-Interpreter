@@ -1,5 +1,167 @@
 /**
  * JJTree template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
- */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(EG2)package edu.sjtu.simpl.grammar;
+ */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(SimPL)package edu.sjtu.simpl.grammar;
 
-public class EG2{  public static void main(String args [])  {    System.out.println("Reading from standard input...");    System.out.print("Enter an expression like \"1+(2+3)*var;\" :");    new EG2(System.in);    try    {      SimpleNode n = EG2.Start();      n.dump("");      System.out.println("Thank you.");    }    catch (Exception e)    {      System.out.println("Oops.");      System.out.println(e.getMessage());    }  }}PARSER_END(EG2)SKIP :{  " "| "\t"| "\n"| "\r"| < "//" (~[ "\n", "\r" ])*    (      "\n"    | "\r"    | "\r\n"    ) >| < "/*" (~[ "*" ])* "*"    (      ~[ "/" ] (~[ "*" ])* "*"    )*    "/" >}TOKEN : /* LITERALS */{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])?     >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >}TOKEN : /* IDENTIFIERS */{  < IDENTIFIER :    < LETTER >    (      < LETTER >    | < DIGIT >    )* >| < #LETTER : [ "_", "a"-"z", "A"-"Z" ] >| < #DIGIT : [ "0"-"9" ] >}SimpleNode Start() :{}{  Expression() ";"  {    return jjtThis;  }}void Expression() :{}{  AdditiveExpression()}void AdditiveExpression() :{}{  MultiplicativeExpression()  (    (      "+"    | "-"    )    MultiplicativeExpression()  )*}void MultiplicativeExpression() :{}{  UnaryExpression()  (    (      "*"    | "/"    | "%"    )    UnaryExpression()  )*}void UnaryExpression() :{}{  "(" Expression() ")"| Identifier()| Integer()}void Identifier() :{}{  < IDENTIFIER >}void Integer() :{}{  < INTEGER_LITERAL >}
+public class SimPL{  public static void main(String args [])  {    System.out.println("Reading from standard input...");    System.out.print("Enter an expression like \"1+(2+3)*var;\" :");    new SimPL(System.in);    try    {      SimpleNode n = SimPL.Start();      n.dump("");      System.out.println("Thank you.");    }    catch (Exception e)    {      System.out.println("Oops.");      System.out.println(e.getMessage());    }  }}PARSER_END(SimPL)SKIP :{  " "| "\t"| "\n"| "\r"| < "//" (~[ "\n", "\r" ])*    (      "\n"    | "\r"    | "\r\n"    ) >| < "/*" (~[ "*" ])* "*"    (      ~[ "/" ] (~[ "*" ])* "*"    )*    "/" >}TOKEN : /* LITERALS */{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])?     >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >}
+
+TOKEN : /* key words*/
+{	< LET : "let">
+	| < IN : "in" >
+	| < IF : "if" >
+	| < THEN : "then">
+	| < ELSE : "else" >
+	| < WHILE: "while" >
+	| < DO : "do" >
+	| < END : "end" >
+	| < FST : "fst" >
+	| < SND : "snd" >
+	| < HEAD : "head">
+	| < TAIL : "tail" >
+	
+	| < FUN : "fun" >
+}
+
+//TOKEN : /*type*/
+/*
+{
+	< INT : "int" >
+	| < BOOL : "bool" >
+	| < NIL : "nil" >
+}
+*/
+TOKEN : /**/
+{
+	  < COMMA : "," >
+	| < SEMICOLON : ";" >
+	| < COLONCOLON : "::" >
+	| < COLONEQUAL : ":=" >
+	| < EQUAL : "=" >
+
+	//uop
+	| < NEGATION : "~" >
+	| < NOT : "not" >
+	//bop
+	| < PLUS : "+" >
+	| < MINUS : "-" >
+	| < TIMES : "*" >
+	| < DIVIDE : "/" >
+	| < BIGGER : ">" >
+	| < LESS : "<" >
+	| < AND : "and" >
+	| < OR : "or" >
+	
+	| < LEFTPARENTHESES : "(" >
+	| < RIGHTPARENTHESES : ")" >
+	| < LBRACKET : "[" >
+	| < RBRACKET : "]" >
+	| < LBRACE : "{" >
+	| < RBRACE : "}" >
+
+	| < ARROW : "->" >
+
+}
+TOKEN : /* IDENTIFIERS */{  < IDENTIFIER :    < LETTER >    (      < LETTER >    | < DIGIT >    )* >| < #LETTER : [ "a"-"z", "A"-"Z" ] >| < #DIGIT : [ "0"-"9" ] >}
+SimpleNode Start() :{}{  Expression()  {    return jjtThis;  }}
+//TODOvoid Expression() :{}{  	List()}
+
+//to eliminate left recursion
+void ExpTerm():
+{	
+}
+
+//list expression: e1::e2
+void List():
+{}{	Expression()< COLONCOLON >Expression()
+}
+
+//pair expression: (e1,e2)
+void Pair():
+{
+}
+{	< LEFTPARENTHESES>Expression()< COMMA >Expression()<RIGHTPARENTHESES >
+}
+
+//application: ( e1 e2 )
+void Application():
+{}
+{
+  	< LEFTPARENTHESES>Expression() Expression()<RIGHTPARENTHESES >}
+
+//conditianal: if e1 then e2 else e3 end
+void ConditionalExp():
+{}
+{
+  	< IF >Expression()< THEN >Expression()< ELSE>Expression()<END >}
+
+//let expression: let x = e1 in e2 end
+void LetExp() :
+{
+}
+{
+	< LET >< IDENTIFIER> < EQUAL > Expression() < IN > Expression() < END >
+}
+//assignment: e1 := e2
+void AssignmentExp():
+{}
+{	Expression()< COLONEQUAL >Expression()
+}
+
+//sequence: e1;e2
+void SequenseExp():
+{}
+{
+  Expression()< SEMICOLON >Expression()}
+
+//whileloop: while e1 do e2 end
+void WhileLoopExp():
+{}
+{
+  < WHILE >Expression()< DO >Expression()< END >}
+
+//fst: fst e
+void FstExp():
+{}
+{
+  	< FST >Expression()}
+
+//snd: snd e
+void SndExp():
+{}
+{
+  < SND >Expression()}
+
+//head: head e
+void HeadExp():
+{}
+{
+	< HEAD >Expression()}
+
+//tail: tail e
+void TailExp():
+{}
+{
+  	< TAIL >Expression()}
+void AdditiveExpression() :{}{  MultiplicativeExpression()  (    (      "+"    | "-"    )    MultiplicativeExpression()  )*}void MultiplicativeExpression() :{}{  UnaryExpression()  (    (      "*"    | "/"    | "%"    )    UnaryExpression()  )*}void UnaryExpression() :{}{  "(" Expression() ")"| Identifier()| Integer()}void Identifier() :{}{  < IDENTIFIER >}void Integer() :{}{  < INTEGER_LITERAL >}
+
+//bool
+void BoolValue():
+{}
+{	"true"	| "false"
+}
+
+//empty list
+void NilValue():
+{
+}
+{
+  "nil"}
+
+//nop
+void NopValue():
+{}{
+ 	< LEFTPARENTHESES><RIGHTPARENTHESES >}
+
+//anonymous function
+void AnonymousFun():
+{}{
+  	< FUN> Identifier()< ARROW>Expression()}
