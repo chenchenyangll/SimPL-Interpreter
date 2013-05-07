@@ -69,7 +69,7 @@ TOKEN : /**/
 
 }
 TOKEN : /* IDENTIFIERS */{  < IDENTIFIER :    < LETTER >    (      < LETTER >    | < DIGIT >    )* >| < #LETTER : [ "a"-"z", "A"-"Z" ] >| < #DIGIT : [ "0"-"9" ] >}
-SimpleNode Program() :{}{  Expression()  {    return jjtThis;  } "!"}
+SimpleNode Program() :{}{  Expression()  {    return jjtThis;  } "$"}
 //TODOvoid Expression() :{}{
  	(
  	  Identifier()   //id 	| LOOKAHEAD(2)Value()        //value
@@ -98,7 +98,7 @@ void LeftParenthness():{}{
 //to eliminate left recursion
 void ExpTail()#void:
 {}
-{	  (ListTail()
+{	(ListTail()
 	| AssignmentTail() //
 	| SequenceTail()
 	| BopTail()	)
@@ -106,7 +106,7 @@ void ExpTail()#void:
 
 //listtail
 void ListTail():{}{
-  < COLONCOLON >Expression()ExpTail()}
+  < COLONCOLON >Expression()}
 
 //assignment tail
 void AssignmentTail():{}{
