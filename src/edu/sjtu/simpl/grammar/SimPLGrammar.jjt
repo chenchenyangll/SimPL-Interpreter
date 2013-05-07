@@ -43,7 +43,7 @@ TOKEN : /**/
 	| < SEMICOLON : ";" >
 	| < COLONCOLON : "::" >
 	| < COLONEQUAL : ":=" >
-	| < EQUAL : "=" >
+	
 	//uop
 	| < NEGATION : "~" >
 	| < NOT : "not" >
@@ -56,6 +56,7 @@ TOKEN : /**/
 	| < LESS : "<" >
 	| < AND : "and" >
 	| < OR : "or" >
+	| < EQUAL : "=" >
 	
 	| < LEFTPARENTHESES : "(" >
 	| < RIGHTPARENTHESES : ")" >
@@ -72,8 +73,8 @@ TOKEN : /**/
 //TODOvoid Expression() :{}{
  	(
  	  Identifier()   //id 	| LOOKAHEAD(2)Value()        //value
- 	| LOOKAHEAD(2)Pair()		//(e1,e2)
- 	| LOOKAHEAD(2)Application()	//(e1 e2)
+ 	//| LOOKAHEAD(2)Pair()		//(e1,e2)
+ 	//| LOOKAHEAD(2)Application()	//(e1 e2)
  	| UopExp()					//uop e
  	| LetExp()					//let x =e1 in e2 end
  	| ConditionalExp()			//if e1 then e2 else e3 end
@@ -82,8 +83,17 @@ TOKEN : /**/
  	| SndExp()					//snd e
  	| HeadExp()					//head e
  	| TailExp()					//tail e
- 	| LOOKAHEAD(2)BrackedExp()  //(e)
+ 	//| BrackedExp()  //(e)
+	| LeftParenthness()
 	) (ExpTail())*}
+
+//(E...
+void LeftParenthness():{}{
+	   < LEFTPARENTHESES>Expression()
+	   (
+	     PairTail()
+	   | ApplicationTail()
+	   | BrackedTail()	   )}
 
 //to eliminate left recursion
 void ExpTail()#void:
@@ -111,8 +121,8 @@ void BopTail()#void:{}{
   Bop()Expression()}
 
 //bracket expression: (e)
-void BrackedExp():{}{
-  < LEFTPARENTHESES>Expression()< RIGHTPARENTHESES>}
+void BrackedTail():{}{
+  < RIGHTPARENTHESES>}
 
 /*
 //list expression: e1::e2
@@ -122,17 +132,17 @@ void List():
 */
 
 //pair expression: (e1,e2)
-void Pair():
+void PairTail():
 {
 }
-{	< LEFTPARENTHESES>Expression()< COMMA >Expression()<RIGHTPARENTHESES >
+{	< COMMA >Expression()<RIGHTPARENTHESES >
 }
 
 //application: ( e1 e2 )
-void Application():
+void ApplicationTail():
 {}
 {
-  	< LEFTPARENTHESES>Expression() Expression()<RIGHTPARENTHESES >}
+  	Expression()<RIGHTPARENTHESES >}
 
 //Uop Expression
 void UopExp():
@@ -253,7 +263,8 @@ void Bop()#void:{}{
 	| < BIGGER> #BiggerOp
 	| < LESS> #LessOp
 	| < AND > #AndOp
-	| < OR> #OrOp}
+	| < OR> #OrOp
+	| < EQUAL > #EqualOp}
 
 void Uop()#void:{}
 {	< NEGATION > #NegationOp

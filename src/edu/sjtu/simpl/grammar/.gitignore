@@ -73,3 +73,8 @@
 /ASTPlusOp.java
 /ASTTimeOp.java
 /ASTProgram.java
+/ASTEqualOp.java
+/ASTLeftParenthness.java
+/ASTApplicationTail.java
+/ASTBrackedTail.java
+/ASTPairTail.java
