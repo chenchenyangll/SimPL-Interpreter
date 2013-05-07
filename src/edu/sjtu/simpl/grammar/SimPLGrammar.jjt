@@ -1,8 +1,12 @@
 /**
  * JJTree template file created by SF JavaCC plugin 1.5.17+ wizard for JavaCC 1.5.0+
- */options{  JDK_VERSION = "1.5";  static = true;}PARSER_BEGIN(SimPL)package edu.sjtu.simpl.grammar;
+ */options{  JDK_VERSION = "1.5";
+  NODE_DEFAULT_VOID = false;
+  MULTI=true;
+  KEEP_LINE_COLUMN = false;}PARSER_BEGIN(SimPL)package edu.sjtu.simpl.grammar;
 
-public class SimPL{  public static void main(String args [])  {    System.out.println("Reading from standard input...");    System.out.print("Enter an expression like \"1+(2+3)*var;\" :");    new SimPL(System.in);    try    {      SimpleNode n = SimPL.Start();      n.dump("");      System.out.println("Thank you.");    }    catch (Exception e)    {      System.out.println("Oops.");      System.out.println(e.getMessage());    }  }}PARSER_END(SimPL)SKIP :{  " "| "\t"| "\n"| "\r"| < "//" (~[ "\n", "\r" ])*    (      "\n"    | "\r"    | "\r\n"    ) >| < "/*" (~[ "*" ])* "*"    (      ~[ "/" ] (~[ "*" ])* "*"    )*    "/" >}TOKEN : /* LITERALS */{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])?     >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >}
+public class SimPL{  public static void main(String args [])  {    System.out.println("Reading from standard input...");    //System.out.print("Enter an expression like \"1+(2+3)*var;\" :");    new SimPL(System.in);    try    {
+      System.out.println("-------");      SimpleNode n = SimPL.Program();      n.dump("");      System.out.println("-------");    }    catch (Exception e)    {      System.out.println("Oops.");      System.out.println(e.getMessage());    }  }}PARSER_END(SimPL)SKIP :{  " "| "\t"| "\n"| "\r"| < "//" (~[ "\n", "\r" ])*    (      "\n"    | "\r"    | "\r\n"    ) >| < "/*" (~[ "*" ])* "*"    (      ~[ "/" ] (~[ "*" ])* "*"    )*    "/" >}TOKEN : /* LITERALS */{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])?     >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >}
 
 TOKEN : /* key words*/
 {	< LET : "let">
@@ -19,6 +23,10 @@ TOKEN : /* key words*/
 	| < TAIL : "tail" >
 	
 	| < FUN : "fun" >
+	| < TRUE:"true" >
+	| < FALSE:"false" >
+
+	| < NIL :"nil">
 }
 
 //TOKEN : /*type*/
@@ -36,7 +44,6 @@ TOKEN : /**/
 	| < COLONCOLON : "::" >
 	| < COLONEQUAL : ":=" >
 	| < EQUAL : "=" >
-
 	//uop
 	| < NEGATION : "~" >
 	| < NOT : "not" >
@@ -61,18 +68,58 @@ TOKEN : /**/
 
 }
 TOKEN : /* IDENTIFIERS */{  < IDENTIFIER :    < LETTER >    (      < LETTER >    | < DIGIT >    )* >| < #LETTER : [ "a"-"z", "A"-"Z" ] >| < #DIGIT : [ "0"-"9" ] >}
-SimpleNode Start() :{}{  Expression()  {    return jjtThis;  }}
-//TODOvoid Expression() :{}{  	List()}
+SimpleNode Program() :{}{  Expression()  {    return jjtThis;  } "!"}
+//TODOvoid Expression() :{}{
+ 	(
+ 	  Identifier()   //id 	| LOOKAHEAD(2)Value()        //value
+ 	| LOOKAHEAD(2)Pair()		//(e1,e2)
+ 	| LOOKAHEAD(2)Application()	//(e1 e2)
+ 	| UopExp()					//uop e
+ 	| LetExp()					//let x =e1 in e2 end
+ 	| ConditionalExp()			//if e1 then e2 else e3 end
+ 	| WhileLoopExp()			//while e1 do e2 end
+ 	| FstExp()					//fst e
+ 	| SndExp()					//snd e
+ 	| HeadExp()					//head e
+ 	| TailExp()					//tail e
+ 	| LOOKAHEAD(2)BrackedExp()  //(e)
+	) (ExpTail())*}
 
 //to eliminate left recursion
-void ExpTerm():
-{	
+void ExpTail()#void:
+{}
+{	  (ListTail()
+	| AssignmentTail() //
+	| SequenceTail()
+	| BopTail()	)
 }
 
+//listtail
+void ListTail():{}{
+  < COLONCOLON >Expression()ExpTail()}
+
+//assignment tail
+void AssignmentTail():{}{
+  < COLONEQUAL >Expression()}
+
+//sequence tail
+void SequenceTail():{}{
+  < SEMICOLON >Expression()}
+
+//BOP tail
+void BopTail()#void:{}{
+  Bop()Expression()}
+
+//bracket expression: (e)
+void BrackedExp():{}{
+  < LEFTPARENTHESES>Expression()< RIGHTPARENTHESES>}
+
+/*
 //list expression: e1::e2
 void List():
 {}{	Expression()< COLONCOLON >Expression()
 }
+*/
 
 //pair expression: (e1,e2)
 void Pair():
@@ -87,6 +134,11 @@ void Application():
 {
   	< LEFTPARENTHESES>Expression() Expression()<RIGHTPARENTHESES >}
 
+//Uop Expression
+void UopExp():
+{}{
+  Uop()Expression()}
+
 //conditianal: if e1 then e2 else e3 end
 void ConditionalExp():
 {}
@@ -98,8 +150,10 @@ void LetExp() :
 {
 }
 {
-	< LET >< IDENTIFIER> < EQUAL > Expression() < IN > Expression() < END >
+	< LET >Identifier() < EQUAL > Expression() < IN > Expression() < END >
 }
+
+/*
 //assignment: e1 := e2
 void AssignmentExp():
 {}
@@ -111,7 +165,7 @@ void SequenseExp():
 {}
 {
   Expression()< SEMICOLON >Expression()}
-
+*/
 //whileloop: while e1 do e2 end
 void WhileLoopExp():
 {}
@@ -141,12 +195,27 @@ void TailExp():
 {}
 {
   	< TAIL >Expression()}
-void AdditiveExpression() :{}{  MultiplicativeExpression()  (    (      "+"    | "-"    )    MultiplicativeExpression()  )*}void MultiplicativeExpression() :{}{  UnaryExpression()  (    (      "*"    | "/"    | "%"    )    UnaryExpression()  )*}void UnaryExpression() :{}{  "(" Expression() ")"| Identifier()| Integer()}void Identifier() :{}{  < IDENTIFIER >}void Integer() :{}{  < INTEGER_LITERAL >}
+//void AdditiveExpression() ://{}//{//  MultiplicativeExpression()//  (//    (//      "+"//    | "-"//    )//    MultiplicativeExpression()//  )*//}////void MultiplicativeExpression() ://{}//{//  UnaryExpression()//  (//    (//      "*"//    | "/"//    | "%"//    )//    UnaryExpression()//  )*//}////void UnaryExpression() ://{}//{//  "(" Expression() ")"//| Identifier()//| Integer()//}void Identifier() :{}{  < IDENTIFIER >}void Integer() :{}{  < INTEGER_LITERAL >}
+
+//valueexp
+
+void Value():{}{
+  	(  	  IntValue()
+  	| BoolValue()
+  	| NilValue()
+  	| LOOKAHEAD(2)NopValue()
+  	| AnonymousFun()
+  	| LOOKAHEAD(2)PairValue()
+ 	)(ValueTail())*}
+
+//int
+void IntValue():{}{
+  < INTEGER_LITERAL >}
 
 //bool
 void BoolValue():
 {}
-{	"true"	| "false"
+{	< TRUE>	| < FALSE>
 }
 
 //empty list
@@ -154,7 +223,7 @@ void NilValue():
 {
 }
 {
-  "nil"}
+  < NIL>}
 
 //nop
 void NopValue():
@@ -165,3 +234,31 @@ void NopValue():
 void AnonymousFun():
 {}{
   	< FUN> Identifier()< ARROW>Expression()}
+
+//pairvalue:
+void PairValue():
+{}{
+  	< LEFTPARENTHESES>Value()< COMMA> Value()<RIGHTPARENTHESES >}
+
+void ValueTail() :{}{
+   ListValueTail()}
+void ListValueTail():{}{
+  < COLONCOLON>Value()}
+
+void Bop()#void:{}{
+  	 < PLUS> #PlusOp
+	| < MINUS> #MinusOp
+	| < TIMES> #TimeOp
+	| < DIVIDE> #DivdeOp
+	| < BIGGER> #BiggerOp
+	| < LESS> #LessOp
+	| < AND > #AndOp
+	| < OR> #OrOp}
+
+void Uop()#void:{}
+{	< NEGATION > #NegationOp
+	| < NOT > #NotOp
+}
+
+
+
