@@ -8,14 +8,14 @@ public class Console {
 	{
 	  System.out.println("Reading from standard input...");
 	  //System.out.print("Enter an expression like \"1+(2+3)*var;\" :");
-	  new SimPL(System.in);
+	  SimPL parser = new SimPL(System.in);
 	 
 		while (true) {
-			SimPL.ReInit(System.in);
+			parser.ReInit(System.in);
 			try {
 				System.out.print("SimPL> ");
-				SimpleNode n = SimPL.Program();
-				n.dump("");
+				SimpleNode n = parser.Program();
+				n.dump("---");
 				System.out.println("-------");
 				
 			} catch (Exception e) {
