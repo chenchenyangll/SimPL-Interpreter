@@ -72,8 +72,68 @@ TOKEN : /**/
 TOKEN : /* IDENTIFIERS */{  < IDENTIFIER :    < LETTER >    (      < LETTER >    | < DIGIT >    )* >| < #LETTER : [ "a"-"z", "A"-"Z" ] >| < #DIGIT : [ "0"-"9" ] >}
 SimpleNode Program() :{}{  Expression()  {    return jjtThis;  } "$"}
 //TODOvoid Expression() :{}{
- 	(
- 	  Identifier()  //id 	| LOOKAHEAD(2)Value()        //value
+ 	Exp1()	}
+
+void Exp1()#void:
+{}
+{     (
+   	   Exp2()(< SEMICOLON >Exp2())*
+       )#Sequence(>1)
+     }
+
+void Exp2()#void:
+{}
+{
+      (
+        < FUN> Identifier()< ARROW>Exp2()
+       )#AnonymousFun
+   	 | Exp3()}
+
+void Exp3()#void:
+{}
+{
+  (    Exp4()(< COLONEQUAL >Exp4())*
+    )#Assignment(>1)
+  }
+
+void Exp4()#void:
+{}
+{
+  (    Exp5()(< COLONCOLON> Exp5())*
+    )#List(>1)}
+
+void Exp5()#void:
+{}
+{
+  Exp6()(BopAndOr()Exp6())*}
+
+void Exp6()#void:
+{}
+{	Exp7()(BopELB()Exp7())*
+}
+
+
+void Exp7()#void:
+{}
+{
+  (    Exp8()(BopAdditive()Exp8())*
+    )#Additive(>1)}
+
+void Exp8()#void:
+{}{
+  (    Exp9()(BopMultive()Exp9())*
+    )#MultiExp(>1)}
+
+void Exp9()#void:
+{}
+{
+  ExpTerm()}
+
+void ExpTerm():
+{}
+{
+   	(   	  Identifier()  
+ 	| LOOKAHEAD(2)Value()        //value
  	| UopExp()					//uop e
  	| LetExp()					//let x =e1 in e2 end
  	| ConditionalExp()			//if e1 then e2 else e3 end
@@ -83,7 +143,7 @@ TOKEN : /**/
  	| HeadExp()					//head e
  	| TailExp()					//tail e
 	| LeftParenthness()
-	) (ExpTail())*}
+	)}
 
 //(E...
 void LeftParenthness():{}{
@@ -92,15 +152,6 @@ void LeftParenthness():{}{
 	     PairTail()
 	   | ApplicationTail()
 	   | BrackedTail()	   )}
-
-//to eliminate left recursion
-void ExpTail()#void:
-{}
-{	(ListTail()
-	| AssignmentTail() //
-	| SequenceTail()
-	| BopTail()	)
-}
 
 //listtail
 void ListTail():{}{
@@ -114,9 +165,7 @@ void AssignmentTail():{}{
 void SequenceTail():{}{
   < SEMICOLON >Expression()}
 
-//BOP tail
-void BopTail():{}{
-  Bop()Expression()}
+
 
 //bracket expression: (e)
 void BrackedTail():{}{
@@ -192,10 +241,8 @@ void Value():{}{
   	(  	  IntValue()
   	| BoolValue()
   	| NilValue()
-  	| LOOKAHEAD(2)NopValue()
-  	| AnonymousFun()
-  	| LOOKAHEAD(2)PairValue()
- 	)(ValueTail())*}
+  	| NopValue()
+ 	)}
 
 //int
 void IntValue():{}{
@@ -224,26 +271,28 @@ void AnonymousFun():
 {}{
   	< FUN> Identifier()< ARROW>Expression()}
 
-//pairvalue:
-void PairValue():
+void BopAndOr()#void: // and or op
 {}{
-  	< LEFTPARENTHESES>Value()< COMMA> Value()<RIGHTPARENTHESES >}
+  	< AND > #AndOp
+	| < OR> #OrOp}
 
-void ValueTail() :{}{
-   ListValueTail()}
-void ListValueTail():{}{
-  < COLONCOLON>Value()}
-
-void Bop()#void:{}{
-  	 < PLUS> #PlusOp
-	| < MINUS> #MinusOp
-	| < TIMES> #TimeOp
-	| < DIVIDE> #DivdeOp
-	| < BIGGER> #BiggerOp
+void BopELB()#void://equal less bigger
+{}{	 < BIGGER> #BiggerOp
 	| < LESS> #LessOp
-	| < AND > #AndOp
-	| < OR> #OrOp
-	| < EQUAL > #EqualOp}
+	| < EQUAL > #EqualOp
+}
+
+void BopAdditive()#void:
+{}
+{
+  	 < PLUS> #PlusOp
+	| < MINUS> #MinusOp}
+
+void BopMultive()#void:
+{}
+{
+  	< TIMES> #TimeOp
+	| < DIVIDE> #DivdeOp}
 
 void Uop()#void:{}
 {	< NEGATION > #NegationOp
