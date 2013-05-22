@@ -4,7 +4,8 @@
   NODE_DEFAULT_VOID = false;
   MULTI=true;
   KEEP_LINE_COLUMN = false;
-  STATIC = false;}PARSER_BEGIN(SimPL)package edu.sjtu.simpl.grammar;
+  STATIC = false;
+  VISITOR = true;}PARSER_BEGIN(SimPL)package edu.sjtu.simpl.grammar;
 
 public class SimPL{  public static void main(String args [])  {    System.out.println("Reading from standard input...");    //System.out.print("Enter an expression like \"1+(2+3)*var;\" :");    SimPL parser = new SimPL(System.in);    try    {
       System.out.println("-------");      SimpleNode n = parser.Program();      n.dump("");      System.out.println("-------");    }    catch (Exception e)    {      System.out.println("Oops.");      System.out.println(e.getMessage());    }  }}PARSER_END(SimPL)SKIP :{  " "| "\t"| "\n"| "\r"| < "//" (~[ "\n", "\r" ])*    (      "\n"    | "\r"    | "\r\n"    ) >| < "/*" (~[ "*" ])* "*"    (      ~[ "/" ] (~[ "*" ])* "*"    )*    "/" >}TOKEN : /* LITERALS */{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])?     >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >}
@@ -117,12 +118,12 @@ void Exp7()#void:
 {}
 {
   (    Exp8()(BopAdditive()Exp8())*
-    )#Additive(>1)}
+    )#AdditiveExp(>1)}
 
 void Exp8()#void:
 {}{
   (    Exp9()(BopMultive()Exp9())*
-    )#MultiExp(>1)}
+    )#MultiveExp(>1)}
 
 void Exp9()#void:
 {}
@@ -152,20 +153,6 @@ void LeftParenthness():{}{
 	     PairTail()
 	   | ApplicationTail()
 	   | BrackedTail()	   )}
-
-//listtail
-void ListTail():{}{
-  < COLONCOLON >Expression()}
-
-//assignment tail
-void AssignmentTail():{}{
-  < COLONEQUAL >Expression()}
-
-//sequence tail
-void SequenceTail():{}{
-  < SEMICOLON >Expression()}
-
-
 
 //bracket expression: (e)
 void BrackedTail():{}{
@@ -233,7 +220,16 @@ void TailExp():
 {}
 {
   	< TAIL >Expression()}
-void Identifier() :{}{  < IDENTIFIER >}void Integer() :{}{  < INTEGER_LITERAL >}
+void Identifier() :{
+  Token t;
+ }{  t = < IDENTIFIER >
+  {
+    jjtThis.jjtSetValue(t.image);  }}void Integer() :{
+  Token t;
+ }{  t = < INTEGER_LITERAL >
+  {
+    jjtThis.jjtSetValue(t.image);
+  }}
 
 //valueexp
 
@@ -250,8 +246,12 @@ void IntValue():{}{
 
 //bool
 void BoolValue():
-{}
-{	< TRUE>	| < FALSE>
+{
+  Token t;}
+{	t = < TRUE>	| t = < FALSE>
+	{
+    jjtThis.jjtSetValue(t.image);
+  	}
 }
 
 //empty list
