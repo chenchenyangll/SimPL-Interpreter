@@ -1,8 +1,8 @@
 package edu.sjtu.simpl.syntax;
 
 public class AnonymousFunction extends Value{
-	Variable arg;
-	Expression body;
+	public Variable arg;
+	public Expression body;
 	
 	public String toString(){
 		return "fun " + arg.toString() + " -> " + body.toString();

@@ -1,8 +1,8 @@
 package edu.sjtu.simpl.syntax;
 
 public class IntValue extends Value{
-	boolean isUndef;
-	int value;
+	public boolean isUndef;
+	public int value;
 
 	public String toString(){
 		if(isUndef)

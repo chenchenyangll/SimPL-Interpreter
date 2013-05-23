@@ -106,11 +106,13 @@ void Exp4()#void:
 void Exp5()#void:
 {}
 {
-  Exp6()(BopAndOr()Exp6())*}
+  (    Exp6()(BopAndOr()Exp6())*
+  )#AndOrExpr(>1)}
 
 void Exp6()#void:
 {}
-{	Exp7()(BopELB()Exp7())*
+{	(	  Exp7()(BopELB()Exp7())*
+	)#ELBExpr(>1)
 }
 
 
@@ -152,10 +154,10 @@ void LeftParenthness():{}{
 	   (
 	     PairTail()
 	   | ApplicationTail()
-	   | BrackedTail()	   )}
+	   | BracketTail()	   )}
 
 //bracket expression: (e)
-void BrackedTail():{}{
+void BracketTail():{}{
   < RIGHTPARENTHESES>}
 
 
@@ -224,12 +226,7 @@ void TailExp():
   Token t;
  }{  t = < IDENTIFIER >
   {
-    jjtThis.jjtSetValue(t.image);  }}void Integer() :{
-  Token t;
- }{  t = < INTEGER_LITERAL >
-  {
-    jjtThis.jjtSetValue(t.image);
-  }}
+    jjtThis.jjtSetValue(t.image);  }}
 
 //valueexp
 
@@ -241,16 +238,21 @@ void Value():{}{
  	)}
 
 //int
-void IntValue():{}{
-  < INTEGER_LITERAL >}
+void IntValue():{
+  Token t;}{
+  t = < INTEGER_LITERAL >
+  {
+    jjtThis.jjtSetValue(t.image);
+  }}
 
 //bool
 void BoolValue():
 {
   Token t;}
-{	t = < TRUE>	| t = < FALSE>
+{	(	  t = < TRUE>	| t = < FALSE>
+	)
 	{
-    jjtThis.jjtSetValue(t.image);
+    	jjtThis.jjtSetValue(t.image);
   	}
 }
 
@@ -291,8 +293,8 @@ void BopAdditive()#void:
 void BopMultive()#void:
 {}
 {
-  	< TIMES> #TimeOp
-	| < DIVIDE> #DivdeOp}
+  	< TIMES> #TimesOp
+	| < DIVIDE> #DevideOp}
 
 void Uop()#void:{}
 {	< NEGATION > #NegationOp
