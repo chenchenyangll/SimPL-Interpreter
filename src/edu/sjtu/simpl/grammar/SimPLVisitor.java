@@ -7,7 +7,6 @@ public interface SimPLVisitor
   public Object visit(ASTProgram node, Object data);
   public Object visit(ASTExpression node, Object data);
   public Object visit(ASTSequence node, Object data);
-  public Object visit(ASTAnonymousFun node, Object data);
   public Object visit(ASTAssignment node, Object data);
   public Object visit(ASTList node, Object data);
   public Object visit(ASTAndOrExpr node, Object data);
@@ -29,6 +28,7 @@ public interface SimPLVisitor
   public Object visit(ASTTailExp node, Object data);
   public Object visit(ASTIdentifier node, Object data);
   public Object visit(ASTValue node, Object data);
+  public Object visit(ASTAnonymousFun node, Object data);
   public Object visit(ASTIntValue node, Object data);
   public Object visit(ASTBoolValue node, Object data);
   public Object visit(ASTNilValue node, Object data);
@@ -45,4 +45,4 @@ public interface SimPLVisitor
   public Object visit(ASTNegationOp node, Object data);
   public Object visit(ASTNotOp node, Object data);
 }
-/* JavaCC - OriginalChecksum=e4b4722c6a265d3358072c4c2c35d6f0 (do not edit this line) */
+/* JavaCC - OriginalChecksum=ba0335b8010181e83502599f6b7dc58c (do not edit this line) */

@@ -31,14 +31,6 @@ TOKEN : /* key words*/
 	| < NIL :"nil">
 }
 
-//TOKEN : /*type*/
-/*
-{
-	< INT : "int" >
-	| < BOOL : "bool" >
-	| < NIL : "nil" >
-}
-*/
 TOKEN : /**/
 {
 	  < COMMA : "," >
@@ -85,10 +77,7 @@ void Exp1()#void:
 void Exp2()#void:
 {}
 {
-      (
-        < FUN> Identifier()< ARROW>Exp2()
-       )#AnonymousFun
-   	 | Exp3()}
+      Exp3()}
 
 void Exp3()#void:
 {}
@@ -136,7 +125,7 @@ void ExpTerm():
 {}
 {
    	(   	  Identifier()  
- 	| LOOKAHEAD(2)Value()        //value
+ 	| Value()        //value
  	| UopExp()					//uop e
  	| LetExp()					//let x =e1 in e2 end
  	| ConditionalExp()			//if e1 then e2 else e3 end
@@ -149,12 +138,17 @@ void ExpTerm():
 	)}
 
 //(E...
-void LeftParenthness():{}{
-	   < LEFTPARENTHESES>Expression()
-	   (
-	     PairTail()
-	   | ApplicationTail()
-	   | BracketTail()	   )}
+void LeftParenthness()#void:{}{
+	   < LEFTPARENTHESES>
+	   (	     
+	   (	     Expression()
+		   (
+		     PairTail()
+		   | ApplicationTail()
+		   | BracketTail()		   )
+		 )#LeftParenthness
+  	| NopValueTail()
+ 	)}
 
 //bracket expression: (e)
 void BracketTail():{}{
@@ -234,7 +228,9 @@ void Value():{}{
   	(  	  IntValue()
   	| BoolValue()
   	| NilValue()
-  	| NopValue()
+  	| (
+        < FUN> Identifier()< ARROW>Exp2()
+       )#AnonymousFun 
  	)}
 
 //int
@@ -264,9 +260,9 @@ void NilValue():
   < NIL>}
 
 //nop
-void NopValue():
+void NopValueTail()#void:
 {}{
- 	< LEFTPARENTHESES><RIGHTPARENTHESES >}
+ 	( 	  <RIGHTPARENTHESES >)#NopValue}
 
 //anonymous function
 void AnonymousFun():

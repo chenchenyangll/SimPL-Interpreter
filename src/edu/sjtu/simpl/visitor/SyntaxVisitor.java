@@ -110,7 +110,7 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTExpression node, Object data) {
-		System.out.println("visit Expression() called...");
+		Log.log("visit Expression() called...");
 		int ccount = node.jjtGetNumChildren();
 		if( ccount != 1 )
 		{
@@ -123,7 +123,7 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTSequence node, Object data) {
-		System.out.println("visit Sequence() called...");
+		Log.log("visit Sequence() called...");
 		Sequence sequenceRoot = new Sequence();
 		
 		SimpleNode exprNode = (SimpleNode) node.jjtGetChild(0);
@@ -175,7 +175,7 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTAssignment node, Object data) {
-		System.out.println("visit ASTAssignment() called...");
+		Log.log("visit ASTAssignment() called...");
 		Assignment assignRoot = new Assignment();
 		
 		SimpleNode exprNode = (SimpleNode) node.jjtGetChild(0);
@@ -201,7 +201,7 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTList node, Object data) {
-		System.out.println("visit ASTList() called...");
+		Log.log("visit ASTList() called...");
 		List listRoot = new List();
 		
 		SimpleNode exprNode = (SimpleNode) node.jjtGetChild(0);
@@ -227,7 +227,7 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTAdditiveExp node, Object data) {
-		System.out.println("visit ASTAdditiveExp() called...");
+		Log.log("visit ASTAdditiveExp() called...");
 		return visitBop(node,data);
 	}
 	
@@ -311,24 +311,24 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTMultiveExp node, Object data) {
-		System.out.println("visit ASTMultiveExp() called...");
+		Log.log("visit ASTMultiveExp() called...");
 		return visitBop(node,data);
 	}
 	@Override
 	public Object visit(ASTAndOrExpr node, Object data) {
-		System.out.println("visit ASTAndOrExpr() called...");
+		Log.log("visit ASTAndOrExpr() called...");
 		return visitBop(node,data);
 	}
 
 	@Override
 	public Object visit(ASTELBExpr node, Object data) {
-		System.out.println("visit ASTELBExpr() called...");
+		Log.log("visit ASTELBExpr() called...");
 		return visitBop(node,data);
 	}
 
 	@Override
 	public Object visit(ASTExpTerm node, Object data) {
-		System.out.println("visit ExprTerm() called...");
+		Log.log("visit ExprTerm() called...");
 		int ccount = node.jjtGetNumChildren();
 		if( ccount != 1 )
 		{
@@ -341,7 +341,7 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTLeftParenthness node, Object data) {
-		System.out.println("visit ASTLeftParenthness() called...");
+		Log.log("visit ASTLeftParenthness() called...");
 		int ccount = node.jjtGetNumChildren();
 		if( ccount != 2 )
 		{
@@ -385,19 +385,19 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTPairTail node, Object data) {
-		System.out.println("visit ASTPairTail() called...");
+		Log.log("visit ASTPairTail() called...");
 		return node.jjtGetChild(0).jjtAccept(this, data);
 	}
 
 	@Override
 	public Object visit(ASTApplicationTail node, Object data) {
-		System.out.println("visit ASTApplicationTail() called...");
+		Log.log("visit ASTApplicationTail() called...");
 		return node.jjtGetChild(0).jjtAccept(this, data);
 	}
 
 	@Override
 	public Object visit(ASTUopExp node, Object data) {
-		System.out.println("visit uop() called...");
+		Log.log("visit uop() called...");
 		
 		int ccount = node.jjtGetNumChildren();
 		if( ccount != 2 )
@@ -516,7 +516,7 @@ public class SyntaxVisitor implements SimPLVisitor {
 
 	@Override
 	public Object visit(ASTIdentifier node, Object data) {
-		System.out.println("visit Variable() called...");
+		Log.log("visit Variable() called...");
 		Variable v = new Variable();
 		v.name = (String) node.jjtGetValue();
 		return v;
