@@ -15,6 +15,7 @@ public class Type {
 	public static final Type LIST = new ListType();
 	public static final Type FUN = new FunctionType();
 	public static final Type UNIT = new UnitType();
+	public static final Type UNKNOWN = new UnknownType();
 	
 	public int getTypeId()
 	{

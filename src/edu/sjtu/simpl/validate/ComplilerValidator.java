@@ -27,11 +27,13 @@ import edu.sjtu.simpl.syntax.Value;
 import edu.sjtu.simpl.syntax.Variable;
 import edu.sjtu.simpl.syntax.WhileDoEnd;
 import edu.sjtu.simpl.type.BoolType;
+import edu.sjtu.simpl.type.FunctionType;
 import edu.sjtu.simpl.type.IntType;
 import edu.sjtu.simpl.type.ListType;
 import edu.sjtu.simpl.type.PairType;
 import edu.sjtu.simpl.type.Type;
 import edu.sjtu.simpl.type.UnitType;
+import edu.sjtu.simpl.type.UnknownType;
 import edu.sjtu.simpl.util.Log;
 
 public class ComplilerValidator implements IComplieTimeValidator{
@@ -67,6 +69,18 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		return null;
 	}
 	
+	private Type check_or_set(Expression e, TypeMap tm, Type t)
+	{
+		if(e instanceof Variable)
+		{
+			return check_or_set((Variable)e,tm,t);
+		}
+		else
+		{
+			return V(e,tm);
+		}
+	}
+	
 	@Override
 	public Type V(Expression e, TypeMap tm) {
 		Log.debug("validate Expression called...");
@@ -76,13 +90,66 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	@Override
 	public Type V(AnonymousFunction fun, TypeMap tm) {
 		Log.debug("validate AnonymousFunction called...");
-		return null;
+		FunctionType ft = new FunctionType();
+		
+		TypeMap newtm = new TypeMap();
+		newtm.put(fun.arg.name, Type.UNKNOWN);
+		
+		newtm = tm.onion(newtm);
+		
+		//lazy ensure arg type and body type
+		Type bType = V(fun.body,newtm);
+		
+		ft.argType = newtm.get(fun.arg.name);
+		ft.bodyType = bType;
+		
+		if(ft.argType == null)
+		{
+			return null;
+		}
+		if(ft.bodyType == null)
+		{
+			return null;
+		}
+		
+		return ft;
 	}
 
 	@Override
 	public Type V(Application app, TypeMap tm) {
 		Log.debug("validate Application called...");
-		return null;
+		Type tfun = V(app.func,tm);
+		
+		Type argType = null;
+		Type bodyType = null;
+		
+		if(tfun == null )
+		{
+			return null;
+		}
+		else if(tfun instanceof FunctionType)
+		{
+			argType = ((FunctionType) tfun).argType;
+			bodyType = ((FunctionType) tfun).bodyType;
+		}
+		else
+		{
+			Log.error("Type Error in "+app.toString()+", FunctionType expexcted..");
+			return null;
+		}
+		
+		Type paraType = V(app.param,tm);
+		if(paraType == null)
+		{
+			return null;
+		}
+		else if(!(paraType.equals(argType)))
+		{
+			Log.error("Type Error in "+app.param.toString()+",arg type error,"+argType.toString()+" expected..");
+			return null;
+		}
+		
+		return bodyType;
 	}
 
 	@Override
@@ -94,8 +161,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 				|| bop.getOperator().equals("/")
 				)
 		{
-			Type t1 = V(bop.e1, tm);
-			Type t2 = V(bop.e2, tm);
+			Type t1 = check_or_set(bop.e1, tm, Type.INT);
+			Type t2 = check_or_set(bop.e2, tm, Type.INT);
 			if ( Type.INT.equals(t1)&& Type.INT.equals(t2))
 			{
 				Log.debug("validate +-*/ ok..");
@@ -103,7 +170,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.debug("Type Error...:"+bop.e1.toString()+","+bop.e2.toString()+" both need to be of type 'INT'");
+				Log.debug("Type Error:"+bop.e1.toString()+","+bop.e2.toString()+" both need to be of type 'INT'");
 				return null;
 			}
 			return null;
@@ -112,8 +179,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 				|| bop.getOperator().equals("<")
 				|| bop.getOperator().equals("=")) 
 		{
-			Type t1 = V(bop.e1, tm);
-			Type t2 = V(bop.e2, tm);
+			Type t1 = check_or_set(bop.e1, tm, Type.INT);
+			Type t2 = check_or_set(bop.e2, tm, Type.INT);
 			if ( Type.INT.equals(t1)&& Type.INT.equals(t2))
 			{
 				Log.debug("validate >< ok..");
@@ -129,8 +196,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		else if (bop.getOperator().equals("and")
 				|| bop.getOperator().equals("or")) 
 		{
-			Type t1 = V(bop.e1, tm);
-			Type t2 = V(bop.e2, tm);
+			Type t1 = check_or_set(bop.e1, tm, Type.BOOL);
+			Type t2 = check_or_set(bop.e2, tm, Type.BOOL);
 			if ( Type.BOOL.equals(t1)&& Type.BOOL.equals(t2))
 			{
 				Log.debug("validate and or ok..");
@@ -420,6 +487,25 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			Log.debug("variable '"+var.name+"' not declared..");
 			return null;
 		}
+		return tm.get(var.name);
+	}
+	
+	private Type check_or_set(Variable var, TypeMap tm, Type t)
+	{
+		Log.debug("check_or_set Variable called...");
+		if(!tm.contains(var.name))
+		{
+			Log.debug("variable '"+var.name+"' not declared..");
+			return null;
+		}
+		//check type
+		Type tvar = tm.get(var.name);
+		if(tvar instanceof UnknownType)
+		{
+			//lazy set
+			tm.put(var.name, t);
+		}
+		
 		return tm.get(var.name);
 	}
 
