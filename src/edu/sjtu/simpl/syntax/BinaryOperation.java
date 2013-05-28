@@ -109,7 +109,7 @@ public class BinaryOperation extends Expression{
 			return new IntType();
 		}
 		
-		Log.log("Type Error!");
+		Log.error("Type Error!");
 		return null;
 	}
 	

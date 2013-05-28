@@ -17,7 +17,7 @@ public class First extends Expression{
 			return ((Pair)e).e1.getType();
 		}
 		
-		Log.log("Type Error on First!");
+		Log.error("Type Error on First!");
 		return null;
 	}
 	

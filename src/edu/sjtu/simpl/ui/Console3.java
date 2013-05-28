@@ -3,7 +3,9 @@ package edu.sjtu.simpl.ui;
 import edu.sjtu.simpl.grammar.SimPL;
 import edu.sjtu.simpl.grammar.SimpleNode;
 import edu.sjtu.simpl.syntax.Expression;
-import edu.sjtu.simpl.validate.CompileTimeValidator;
+import edu.sjtu.simpl.type.Type;
+import edu.sjtu.simpl.util.Log;
+import edu.sjtu.simpl.validate.ComplilerValidator;
 import edu.sjtu.simpl.validate.TypeMap;
 import edu.sjtu.simpl.visitor.SyntaxVisitor;
 
@@ -21,8 +23,8 @@ public class Console3 {
 			try {
 				System.out.print("SimPL> ");
 				n = parser.Program();
-				n.dump("---");
-				System.out.println("-------");
+				//n.dump("---");
+				//System.out.println("-------");
 				
 			} catch (Exception e) {
 				System.out.println("Syntax Error!");
@@ -43,9 +45,18 @@ public class Console3 {
 				continue;
 			}
 			
-			CompileTimeValidator validator = new CompileTimeValidator();
-			
-			validator.V(root, new TypeMap());
+			try{
+				ComplilerValidator validator = new ComplilerValidator();
+				
+				Type t = validator.V(root, new TypeMap());
+				if(t!=null)
+					Log.info(t.toString());
+			}
+			catch(Exception e)
+			{
+				e.printStackTrace();
+				continue;
+			}
 		}
 
 	}

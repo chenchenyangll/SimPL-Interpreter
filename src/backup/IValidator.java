@@ -1,4 +1,4 @@
-package edu.sjtu.simpl.validate;
+package backup;
 
 import edu.sjtu.simpl.syntax.AnonymousFunction;
 import edu.sjtu.simpl.syntax.Application;
@@ -25,6 +25,7 @@ import edu.sjtu.simpl.syntax.Value;
 import edu.sjtu.simpl.syntax.Variable;
 import edu.sjtu.simpl.syntax.WhileDoEnd;
 import edu.sjtu.simpl.type.Type;
+import edu.sjtu.simpl.validate.TypeMap;
 
 public interface IValidator {
 	public boolean V( Expression e, TypeMap tm);

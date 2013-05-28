@@ -1,0 +1,52 @@
+package edu.sjtu.simpl.validate;
+
+import edu.sjtu.simpl.syntax.AnonymousFunction;
+import edu.sjtu.simpl.syntax.Application;
+import edu.sjtu.simpl.syntax.Assignment;
+import edu.sjtu.simpl.syntax.BinaryOperation;
+import edu.sjtu.simpl.syntax.BoolValue;
+import edu.sjtu.simpl.syntax.Bracket;
+import edu.sjtu.simpl.syntax.Expression;
+import edu.sjtu.simpl.syntax.First;
+import edu.sjtu.simpl.syntax.Head;
+import edu.sjtu.simpl.syntax.IfThenElse;
+import edu.sjtu.simpl.syntax.IntValue;
+import edu.sjtu.simpl.syntax.LetInEnd;
+import edu.sjtu.simpl.syntax.List;
+import edu.sjtu.simpl.syntax.Nil;
+import edu.sjtu.simpl.syntax.Nop;
+import edu.sjtu.simpl.syntax.Pair;
+import edu.sjtu.simpl.syntax.Second;
+import edu.sjtu.simpl.syntax.Sequence;
+import edu.sjtu.simpl.syntax.Tail;
+import edu.sjtu.simpl.syntax.UnaryOperation;
+import edu.sjtu.simpl.syntax.Value;
+import edu.sjtu.simpl.syntax.Variable;
+import edu.sjtu.simpl.syntax.WhileDoEnd;
+import edu.sjtu.simpl.type.Type;
+
+public interface IComplieTimeValidator {
+	public Type V( Expression e, TypeMap tm);
+	public Type V( AnonymousFunction fun, TypeMap tm);
+	public Type V( Application app, TypeMap tm);
+	public Type V( Assignment assign, TypeMap tm);
+	public Type V( BinaryOperation bop, TypeMap tm);
+	public Type V( BoolValue bv, TypeMap tm);
+	public Type V( Bracket brket, TypeMap tm);
+	public Type V( First fst, TypeMap tm);
+	public Type V( Head head, TypeMap tm);
+	public Type V( IfThenElse ite, TypeMap tm);
+	public Type V( IntValue intValue, TypeMap tm);
+	public Type V( LetInEnd letin, TypeMap tm);
+	public Type V( List list, TypeMap tm);
+	public Type V( Nil nil, TypeMap tm);
+	public Type V( Nop nop, TypeMap tm);
+	public Type V( Pair pair, TypeMap tm);
+	public Type V( Second scd, TypeMap tm);
+	public Type V( Sequence seq, TypeMap tm);
+	public Type V( Tail tail, TypeMap tm);
+	public Type V( UnaryOperation uop, TypeMap tm);
+	public Type V( Value v, TypeMap tm);
+	public Type V( Variable var, TypeMap tm);
+	public Type V( WhileDoEnd wde, TypeMap tm);
+}

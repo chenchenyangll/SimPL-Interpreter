@@ -30,4 +30,16 @@ public class UnaryOperation extends Expression{
 			op = UnaryOperator.not;
 		}
 	}
+	
+	public String getOperator()
+	{
+		String operator = "";
+		switch(op){
+		case not:
+			operator = "not"; break;
+		case negative:
+			operator = "~"; break;
+		}
+		return operator;
+	}
 }
