@@ -1,5 +1,9 @@
 package edu.sjtu.simpl.syntax;
 
+import edu.sjtu.simpl.type.IntType;
+import edu.sjtu.simpl.type.Type;
+import edu.sjtu.simpl.util.Log;
+
 public class BinaryOperation extends Expression{
 	public enum BinaryOperator{
 		plus, minus, times, devide, biggerThan, lessThan, equal, and, or
@@ -31,7 +35,7 @@ public class BinaryOperation extends Expression{
 		case or:
 			operator = "or"; break;
 		}
-		return e1.toString() + " " + operator + " " + e2.toString();
+		return "<" +e1.toString() + " " + operator + " " + e2.toString()+">";
 	}
 	
 	public void setOperator(String op)
@@ -71,5 +75,44 @@ public class BinaryOperation extends Expression{
 			this.op = BinaryOperator.or;
 		}
 	}
+	
+	public String getOperator()
+	{
+		String operator = "";
+		switch(this.op){
+		case plus:
+			operator = "+"; break;
+		case minus:
+			operator = "-"; break;
+		case times:
+			operator = "*"; break;
+		case devide:
+			operator = "/"; break;
+		case biggerThan:
+			operator = ">"; break;
+		case lessThan:
+			operator = "<"; break;
+		case equal:
+			operator = "="; break;
+		case and:
+			operator = "and"; break;
+		case or:
+			operator = "or"; break;
+		}
+		return operator;
+	}
+
+	@Override
+	public Type getType() {
+		if(e1.getType().getTypeId() == Type.ID_INT&&e2.getType().getTypeId() == Type.ID_INT)
+		{
+			return new IntType();
+		}
+		
+		Log.log("Type Error!");
+		return null;
+	}
+	
+	
 	
 }

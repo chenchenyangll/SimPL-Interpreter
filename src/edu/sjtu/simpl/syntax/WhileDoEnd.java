@@ -5,6 +5,6 @@ public class WhileDoEnd extends Expression{
 	public Expression body;
 	
 	public String toString(){
-		return "while " + condition.toString() + " do " + body.toString() + " end";
+		return "<" +"while " + condition.toString() + " do " + body.toString() + " end"+">";
 	}
 }

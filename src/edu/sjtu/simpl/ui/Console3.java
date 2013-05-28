@@ -3,9 +3,11 @@ package edu.sjtu.simpl.ui;
 import edu.sjtu.simpl.grammar.SimPL;
 import edu.sjtu.simpl.grammar.SimpleNode;
 import edu.sjtu.simpl.syntax.Expression;
+import edu.sjtu.simpl.validate.CompileTimeValidator;
+import edu.sjtu.simpl.validate.TypeMap;
 import edu.sjtu.simpl.visitor.SyntaxVisitor;
 
-public class Console2 {
+public class Console3 {
 	public static void main(String args [])
 	{
 	  System.out.println("Reading from standard input...");
@@ -13,7 +15,7 @@ public class Console2 {
 	  SimPL parser = new SimPL(System.in);
 	 
 		while (true) {
-			SimpleNode n;
+			SimpleNode n = null;
 			parser.ReInit(System.in);
 			
 			try {
@@ -22,23 +24,28 @@ public class Console2 {
 				n.dump("---");
 				System.out.println("-------");
 				
-				try{
-					SyntaxVisitor visitor = new SyntaxVisitor();
-					Expression e = (Expression) n.jjtAccept(visitor, null);
-					System.out.println(e.toString());
-				}
-				catch (Exception e)
-				{
-					System.out.println("visitor error!");
-					e.printStackTrace();
-					
-				}
-				
 			} catch (Exception e) {
 				System.out.println("Syntax Error!");
 				e.printStackTrace();
+				continue;
 			}
 			
+			Expression root = null;
+			try{
+				SyntaxVisitor visitor = new SyntaxVisitor();
+				root = (Expression) n.jjtAccept(visitor, null);
+				System.out.println(root.toString());
+			}
+			catch (Exception e)
+			{
+				System.out.println("visitor error!");
+				e.printStackTrace();
+				continue;
+			}
+			
+			CompileTimeValidator validator = new CompileTimeValidator();
+			
+			validator.V(root, new TypeMap());
 		}
 
 	}

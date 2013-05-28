@@ -5,6 +5,6 @@ public class List extends Expression{
 	public Expression tail;	
 	
 	public String toString(){
-		return "[" + head.toString() + ", " + tail.toString() + "]";
+		return "<" +"[" + head.toString() + ", " + tail.toString() + "]"+">";
 	}
 }

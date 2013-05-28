@@ -5,6 +5,6 @@ public class Pair extends Expression{
 	public Expression e2;
 	
 	public String toString(){
-		return "(" + e1.toString() + ", " + e2.toString() + ")";
+		return "<" +"(" + e1.toString() + ", " + e2.toString() + ")"+">";
 	}
 }

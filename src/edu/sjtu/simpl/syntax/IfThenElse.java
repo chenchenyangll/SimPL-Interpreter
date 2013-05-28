@@ -6,6 +6,6 @@ public class IfThenElse extends Expression{
 	public Expression elseClause;
 	
 	public String toString(){
-		return "if " + condition.toString() + " then " + thenClause.toString() + " else " + elseClause.toString();
+		return "<" +"if " + condition.toString() + " then " + thenClause.toString() + " else " + elseClause.toString() +">";
 	}
 }
