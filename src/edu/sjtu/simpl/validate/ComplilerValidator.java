@@ -101,6 +101,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		Type bType = V(fun.body,newtm);
 		
 		ft.argType = newtm.get(fun.arg.name);
+		newtm.print();
+		Log.debug("retrive argType for "+fun.toString()+"-"+ft.argType.toString()+" got");
 		ft.bodyType = bType;
 		
 		if(ft.argType == null)
@@ -138,7 +140,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			return null;
 		}
 		
-		Type paraType = V(app.param,tm);
+		Type paraType = check_or_set(app.param,tm, argType);
 		if(paraType == null)
 		{
 			return null;
@@ -351,10 +353,6 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		Log.debug("validate List called...");
 		Type t1 = V(list.head,tm);
 		Type t2 = V(list.tail,tm);
-		Log.debug("......");
-		Log.debug(t1.toString());
-		Log.debug(t2.toString());
-		Log.debug("......");
 		
 		if(t1 == null || t2 == null)
 		{
@@ -492,7 +490,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	
 	private Type check_or_set(Variable var, TypeMap tm, Type t)
 	{
-		Log.debug("check_or_set Variable called...");
+		Log.debug("check_or_set Variable "+var.name+" called...");
 		if(!tm.contains(var.name))
 		{
 			Log.debug("variable '"+var.name+"' not declared..");
@@ -502,6 +500,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		Type tvar = tm.get(var.name);
 		if(tvar instanceof UnknownType)
 		{
+			Log.debug("lazy set type of '"+var.name+"' to "+t.toString());
 			//lazy set
 			tm.put(var.name, t);
 		}

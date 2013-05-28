@@ -13,9 +13,12 @@ import edu.sjtu.simpl.type.Type;
 public class TypeMap {
 	private HashMap<String,Type> typeMap;
 	
+	private TypeMap outerBlockTypeMap;
+	
 	public TypeMap()
 	{
 		typeMap = new HashMap<String,Type>();
+		outerBlockTypeMap = null;
 	}
 	
 	public void put(String id, Type type)
