@@ -21,54 +21,135 @@ public class TypeMap {
 		outerBlockTypeMap = null;
 	}
 	
-	public void put(String id, Type type)
+//	public void put(String id, Type type)
+//	{
+//		this.typeMap.put(id, type);
+//	}
+//	
+//	public Type get(String id)
+//	{
+//		return typeMap.get(id);
+//	}
+//	
+//	public boolean contains(String id)
+//	{
+//		return typeMap.containsKey(id);
+//	}
+//	
+//	public TypeMap onion(TypeMap dest)
+//	{
+//		TypeMap tm = new TypeMap();
+//		//copy origin
+//		Set set =this.typeMap.entrySet();
+//	    Iterator it=set.iterator();
+//	    while(it.hasNext())
+//	    {
+//	    	Entry<String, Type>  entry=(Entry<String, Type>) it.next();
+//	    	tm.put(entry.getKey(),entry.getValue());
+//	    }
+//	    
+//	    //onion with origin
+//	    set =dest.typeMap.entrySet();
+//	    it=set.iterator();
+//	    while(it.hasNext())
+//	    {
+//	    	Entry<String, Type>  entry=(Entry<String, Type>) it.next();
+//	    	tm.put(entry.getKey(),entry.getValue());
+//	    }
+//	    
+//	    return tm;
+//	}
+	
+	public TypeMap onion(TypeMap onion)
 	{
-		this.typeMap.put(id, type);
+		onion.outerBlockTypeMap = this;
+		return onion;
 	}
 	
 	public Type get(String id)
 	{
-		return typeMap.get(id);
+		TypeMap tm = this;
+		while(tm != null)
+		{
+			Type t = tm.typeMap.get(id);
+			if(t == null)
+				tm = tm.outerBlockTypeMap;
+			else
+				return t;
+		}
+		
+		return null;
 	}
 	
 	public boolean contains(String id)
 	{
-		return typeMap.containsKey(id);
+		TypeMap tm = this;
+		while(tm != null)
+		{
+			if( tm.typeMap.containsKey(id))
+			{
+				return true;
+			}
+			else
+			{
+				tm = tm.outerBlockTypeMap;
+			}
+		}
+		
+		return false;
 	}
 	
-	public TypeMap onion(TypeMap dest)
+	public void put(String id,Type type)
 	{
-		TypeMap tm = new TypeMap();
-		//copy origin
-		Set set =this.typeMap.entrySet();
-	    Iterator it=set.iterator();
-	    while(it.hasNext())
-	    {
-	    	Entry<String, Type>  entry=(Entry<String, Type>) it.next();
-	    	tm.put(entry.getKey(),entry.getValue());
-	    }
-	    
-	    //onion with origin
-	    set =dest.typeMap.entrySet();
-	    it=set.iterator();
-	    while(it.hasNext())
-	    {
-	    	Entry<String, Type>  entry=(Entry<String, Type>) it.next();
-	    	tm.put(entry.getKey(),entry.getValue());
-	    }
-	    
-	    return tm;
+		this.typeMap.put(id, type);
+	}
+	
+	//exit a block, erase the inner typemap
+	public TypeMap exitBlock()
+	{
+		return this.outerBlockTypeMap;
+	}
+	
+	public void set(String id, Type type)
+	{
+		TypeMap tm = this;
+		while(tm != null)
+		{
+			Type t = tm.typeMap.get(id);
+			if(t == null)
+				tm = tm.outerBlockTypeMap;
+			else
+				break;
+		}
+		
+		//if some outer block typemap contains id
+		if(tm != null)
+		{
+			tm.typeMap.put(id, type);
+		}
+		else
+		{
+			this.typeMap.put(id, type);
+		}
 	}
 	
 	public void print()
 	{
-		Set set =this.typeMap.entrySet();
-	    Iterator it=set.iterator();
+
 	    String typeMsg = "{";
-	    while(it.hasNext())
+	    
+	    TypeMap tm = this;
+	    while(tm != null)
 	    {
-	    	Entry<String, Type>  entry=(Entry<String, Type>) it.next();
-	    	typeMsg += "<"+entry.getKey()+","+entry.getValue().toString()+">,";
+	    	Set set =tm.typeMap.entrySet();
+	    	Iterator it=set.iterator();
+	    	while(it.hasNext())
+	    	{
+	    		Entry<String, Type>  entry=(Entry<String, Type>) it.next();
+	    		typeMsg += "<"+entry.getKey()+","+entry.getValue().toString()+">,";
+	    	}
+	    	
+	    	tm = tm.outerBlockTypeMap;
 	    }
 	    typeMsg += "}";
 	    System.out.println(typeMsg);

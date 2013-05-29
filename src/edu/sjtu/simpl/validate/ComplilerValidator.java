@@ -129,28 +129,29 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		{
 			return null;
 		}
-		else if(tfun instanceof FunctionType)
-		{
-			argType = ((FunctionType) tfun).argType;
-			bodyType = ((FunctionType) tfun).bodyType;
-		}
-		else
+		else if(!(tfun instanceof FunctionType))
 		{
 			Log.error("Type Error in "+app.toString()+", FunctionType expexcted..");
 			return null;
 		}
-		
-		Type paraType = check_or_set(app.param,tm, argType);
-		if(paraType == null)
-		{
-			return null;
+		else if(tfun instanceof FunctionType)
+		{	
+			argType = ((FunctionType) tfun).argType;
+			bodyType = ((FunctionType) tfun).bodyType;
+			
+			Type paraType = check_or_set(app.param,tm,argType);
+			Log.debug("after checking para...");
+			tm.print();
+			if(paraType == null)
+			{
+				return null;
+			}
+			else if(!(paraType.equals(argType))&&!(argType instanceof UnknownType))
+			{
+				Log.error("Type Error in "+app.param.toString()+",arg type error,"+argType.toString()+" expected..");
+				return null;
+			}
 		}
-		else if(!(paraType.equals(argType)))
-		{
-			Log.error("Type Error in "+app.param.toString()+",arg type error,"+argType.toString()+" expected..");
-			return null;
-		}
-		
 		return bodyType;
 	}
 
@@ -165,7 +166,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		{
 			Type t1 = check_or_set(bop.e1, tm, Type.INT);
 			Type t2 = check_or_set(bop.e2, tm, Type.INT);
-			if ( Type.INT.equals(t1)&& Type.INT.equals(t2))
+			if ( (Type.INT.equals(t1)||Type.UNKNOWN.equals(t1))
+					&&( Type.INT.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
 				Log.debug("validate +-*/ ok..");
 				return Type.INT;
@@ -183,7 +185,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		{
 			Type t1 = check_or_set(bop.e1, tm, Type.INT);
 			Type t2 = check_or_set(bop.e2, tm, Type.INT);
-			if ( Type.INT.equals(t1)&& Type.INT.equals(t2))
+			if ( (Type.INT.equals(t1)||Type.UNKNOWN.equals(t1))
+					&&( Type.INT.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
 				Log.debug("validate >< ok..");
 				return Type.BOOL;
@@ -200,7 +203,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		{
 			Type t1 = check_or_set(bop.e1, tm, Type.BOOL);
 			Type t2 = check_or_set(bop.e2, tm, Type.BOOL);
-			if ( Type.BOOL.equals(t1)&& Type.BOOL.equals(t2))
+			if ( (Type.BOOL.equals(t1)||Type.UNKNOWN.equals(t1))
+					&&( Type.BOOL.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
 				Log.debug("validate and or ok..");
 				return Type.BOOL;
@@ -287,7 +291,9 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	public Type V(IfThenElse ite, TypeMap tm) {
 		Log.debug("validate IfThenElse called...");
 		//check condition
+		tm.print();
 		Type t1 = V(ite.condition,tm);
+		tm.print();
 		if(t1 == null)
 		{
 			return null;
@@ -298,15 +304,15 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			return null;
 		}
 		
-		//check then clause and elseClause
-		Type t2 = V(ite.elseClause,tm);
-		if(t2 == null)
+		Type t3 = V(ite.thenClause,tm);
+		if(t3 == null)
 		{
 			return null;
 		}
 		
-		Type t3 = V(ite.thenClause,tm);
-		if(t3 == null)
+		//check then clause and elseClause
+		Type t2 = V(ite.elseClause,tm);
+		if(t2 == null)
 		{
 			return null;
 		}
@@ -315,9 +321,17 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		{
 			return t2;
 		}
+		else if(t2 instanceof UnknownType)
+		{
+			return t3;
+		}
+		else if(t3 instanceof UnknownType)
+		{
+			return t2;
+		}
 		else
 		{
-			Log.error("Type Error in "+ite.toString()+",type is different between thenClause and elseClause");
+			Log.error("Type Error in "+ite.toString()+",type is different between thenClause:"+ t3.toString() +" and elseClause:"+t2.toString());
 			return null;
 		}
 	}
@@ -331,18 +345,31 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	@Override
 	public Type V(LetInEnd letin, TypeMap tm) {
 		Log.debug("validate LetInEnd called...");
-		Type defType = V(letin.definition,tm);
 		
 		TypeMap newTm = new TypeMap();
+		Type liklyType = Type.UNKNOWN;
+		if(letin.definition instanceof AnonymousFunction)
+		{
+			FunctionType ft = new FunctionType();
+			ft.argType = Type.UNKNOWN;
+			ft.bodyType = Type.UNKNOWN;
+			liklyType = ft;
+		}
+		newTm.put(letin.x.name, liklyType);
+		newTm = tm.onion(newTm);
+		
+		Type defType = V(letin.definition,newTm);
 		if(defType != null)
 		{
-			newTm.put(letin.x.name, defType);
+			newTm.set(letin.x.name, defType);
 		}
 		else
 		{
 			Log.debug("letin.definition failed..");
 			return null;
 		}
+		Log.debug("after definition let..");
+		newTm.print();
 		
 		Type bodyType = V(letin.body,newTm);
 		return bodyType;
@@ -502,7 +529,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		{
 			Log.debug("lazy set type of '"+var.name+"' to "+t.toString());
 			//lazy set
-			tm.put(var.name, t);
+			tm.set(var.name, t);
 		}
 		
 		return tm.get(var.name);

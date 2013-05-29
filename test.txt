@@ -1,6 +1,6 @@
 
 #1
-let f = fun x -> (if x = 1 then 1 else x*( f ( x1)) end ) in (f 4) end
+let f = fun x -> (if x = 1 then 1 else x*( f (x-1)) end ) in (f 4) end
 
 #2
 let f = fun x-> x+1 in (f 2) end$

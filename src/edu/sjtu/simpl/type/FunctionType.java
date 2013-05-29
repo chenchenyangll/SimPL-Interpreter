@@ -18,7 +18,7 @@ public class FunctionType extends Type{
 	
 	@Override
 	public String toString() {
-		return "("+argType.toString()+" "+bodyType.toString()+")";
+		return argType.toString()+"->"+bodyType.toString();
 	}
 }
 
