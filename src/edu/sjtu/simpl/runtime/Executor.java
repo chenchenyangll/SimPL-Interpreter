@@ -336,11 +336,12 @@ public class Executor implements IExecutor{
 	@Override
 	public Value M(WhileDoEnd wde, State state) {
 		Log.debug("M WhileDoEnd called,state is:"+state.toString());
-		BoolValue bv = (BoolValue) M(wde.condition, state);
 		
-		if(bv.value == true)
+		BoolValue bv = (BoolValue) M(wde.condition, state);
+		while(bv.value == true)
 		{
 			M(wde.body,state);
+			bv = (BoolValue) M(wde.condition, state);
 		}
 		return new Nop();
 	}
@@ -358,7 +359,7 @@ public class Executor implements IExecutor{
 
 	@Override
 	public Value functionCall(AnonymousFunction fun, Value para, State state) {
-		Log.debug("functionCall called,state is:"+state.toString()+",para:"+para.toString());
+		Log.debug("call "+fun.toString()+",state is:"+state.toString()+",para:"+para.toString());
 		State nst = new State();
 		int addr = Memory.getInstance().allocate(para);
 		nst.put(fun.arg.name, addr);

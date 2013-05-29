@@ -435,7 +435,9 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	@Override
 	public Type V(Sequence seq, TypeMap tm) {
 		Log.debug("validate Sequence called...");
-		return null;
+		V(seq.e1,tm);
+		Type t = V(seq.e2, tm);
+		return t;
 	}
 
 	@Override

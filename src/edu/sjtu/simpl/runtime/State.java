@@ -97,7 +97,8 @@ public class State {
 			while (it.hasNext()) {
 				Entry<String, Integer> entry = (Entry<String, Integer>) it.next();
 				stateMsg += "<" + entry.getKey() + ","
-						+ entry.getValue().toString() + ">,";
+						+ entry.getValue().toString() + ","
+						+ Memory.getInstance().getValue(entry.getValue()).toString()+">,";
 			}
 
 			st = st.outerBlockState;

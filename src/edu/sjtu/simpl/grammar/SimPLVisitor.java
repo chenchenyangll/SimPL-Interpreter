@@ -14,18 +14,18 @@ public interface SimPLVisitor
   public Object visit(ASTAdditiveExp node, Object data);
   public Object visit(ASTMultiveExp node, Object data);
   public Object visit(ASTExpTerm node, Object data);
-  public Object visit(ASTLeftParenthness node, Object data);
-  public Object visit(ASTBracketTail node, Object data);
-  public Object visit(ASTPairTail node, Object data);
-  public Object visit(ASTApplicationTail node, Object data);
-  public Object visit(ASTUopExp node, Object data);
-  public Object visit(ASTConditionalExp node, Object data);
-  public Object visit(ASTLetExp node, Object data);
-  public Object visit(ASTWhileLoopExp node, Object data);
   public Object visit(ASTFstExp node, Object data);
   public Object visit(ASTSndExp node, Object data);
   public Object visit(ASTHeadExp node, Object data);
   public Object visit(ASTTailExp node, Object data);
+  public Object visit(ASTUopExp node, Object data);
+  public Object visit(ASTLeftParenthness node, Object data);
+  public Object visit(ASTBracketTail node, Object data);
+  public Object visit(ASTPairTail node, Object data);
+  public Object visit(ASTApplicationTail node, Object data);
+  public Object visit(ASTConditionalExp node, Object data);
+  public Object visit(ASTLetExp node, Object data);
+  public Object visit(ASTWhileLoopExp node, Object data);
   public Object visit(ASTIdentifier node, Object data);
   public Object visit(ASTValue node, Object data);
   public Object visit(ASTAnonymousFun node, Object data);
@@ -45,4 +45,4 @@ public interface SimPLVisitor
   public Object visit(ASTNegationOp node, Object data);
   public Object visit(ASTNotOp node, Object data);
 }
-/* JavaCC - OriginalChecksum=437cd8cf8d991a0303f5d5a5f2780465 (do not edit this line) */
+/* JavaCC - OriginalChecksum=1a2836318bffcd259a69bc6c1ae695c8 (do not edit this line) */

@@ -119,24 +119,66 @@ void Exp8()#void:
 void Exp9()#void:
 {}
 {
-  ExpTerm()}
+    UopExp()
+	| Exp10()}
+
+void Exp10()#void:
+{}
+{
+ 	 FstExp()					//fst e
+ 	| SndExp()					//snd e
+ 	| HeadExp()					//head e
+ 	| TailExp()					//tail e
+ 	| ExpTerm()}
 
 void ExpTerm():
 {}
 {
    	(   	  Identifier()  
  	| Value()        //value
- 	| UopExp()					//uop e
  	| LetExp()					//let x =e1 in e2 end
  	| ConditionalExp()			//if e1 then e2 else e3 end
  	| WhileLoopExp()			//while e1 do e2 end
- 	| FstExp()					//fst e
- 	| SndExp()					//snd e
- 	| HeadExp()					//head e
- 	| TailExp()					//tail e
 	| LeftParenthness()
 	)}
+//fst: fst e
+void FstExp():
+{
+}
+{
+  	< FST >ExpTerm()
+}
 
+//snd: snd e
+void SndExp():
+{
+}
+{
+  < SND >ExpTerm()
+}
+
+//head: head e
+void HeadExp():
+{
+}
+{
+	< HEAD >ExpTerm()
+}
+
+//tail: tail e
+void TailExp():
+{
+}
+{
+  	< TAIL >ExpTerm()
+}
+//Uop Expression
+void UopExp():
+{
+}
+{
+  Uop()Exp10()
+}
 //(E...
 void LeftParenthness()#void:{}{
 	   < LEFTPARENTHESES>
@@ -168,11 +210,6 @@ void ApplicationTail():
 {
   	Expression()<RIGHTPARENTHESES >}
 
-//Uop Expression
-void UopExp():
-{}{
-  Uop()Expression()}
-
 //conditianal: if e1 then e2 else e3 end
 void ConditionalExp():
 {}
@@ -193,29 +230,7 @@ void WhileLoopExp():
 {
   < WHILE >Expression()< DO >Expression()< END >}
 
-//fst: fst e
-void FstExp():
-{}
-{
-  	< FST >Expression()}
 
-//snd: snd e
-void SndExp():
-{}
-{
-  < SND >Expression()}
-
-//head: head e
-void HeadExp():
-{}
-{
-	< HEAD >Expression()}
-
-//tail: tail e
-void TailExp():
-{}
-{
-  	< TAIL >Expression()}
 void Identifier() :{
   Token t;
  }{  t = < IDENTIFIER >
