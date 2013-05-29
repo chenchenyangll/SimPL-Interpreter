@@ -102,7 +102,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		
 		ft.argType = newtm.get(fun.arg.name);
 		newtm.print();
-		Log.debug("retrive argType for "+fun.toString()+"-"+ft.argType.toString()+" got");
+		//Log.debug("retrive argType for "+fun.toString()+"-"+ft.argType.toString()+" got");
 		ft.bodyType = bType;
 		
 		if(ft.argType == null)
@@ -169,7 +169,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			if ( (Type.INT.equals(t1)||Type.UNKNOWN.equals(t1))
 					&&( Type.INT.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
-				Log.debug("validate +-*/ ok..");
+				//Log.debug("validate +-*/ ok..");
 				return Type.INT;
 			}
 			else if(t1 != null && t2 != null)
@@ -188,7 +188,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			if ( (Type.INT.equals(t1)||Type.UNKNOWN.equals(t1))
 					&&( Type.INT.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
-				Log.debug("validate >< ok..");
+				//Log.debug("validate >< ok..");
 				return Type.BOOL;
 			}
 			else if(t1 != null && t2 != null)
@@ -206,7 +206,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			if ( (Type.BOOL.equals(t1)||Type.UNKNOWN.equals(t1))
 					&&( Type.BOOL.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
-				Log.debug("validate and or ok..");
+				//Log.debug("validate and or ok..");
 				return Type.BOOL;
 			}
 			else if(t1 != null && t2 != null)
@@ -365,7 +365,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			Log.debug("letin.definition failed..");
+			//Log.debug("letin.definition failed..");
 			return null;
 		}
 		Log.debug("after definition let..");
