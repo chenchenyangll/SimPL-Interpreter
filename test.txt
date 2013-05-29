@@ -39,3 +39,16 @@ let
 in
 	((f 1) true)
 end$
+
+#11
+let x=2 in let y = (x,3) in fst y end end$
+
+#12
+let x=1::2::3::4 in head x end$
+
+#13
+let x=1::2::3::4 in head ( tail x ) end$
+
+#14
+let x=1 in if x > 0 then 1 else 0 end end$
+

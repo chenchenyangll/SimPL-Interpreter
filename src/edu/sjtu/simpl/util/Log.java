@@ -15,4 +15,9 @@ public class Log {
 	{
 		System.out.println("[Info]:"+msg);
 	}
+	
+	public static void rslt(String msg)
+	{
+		System.out.println("SimPL>"+msg);
+	}
 }

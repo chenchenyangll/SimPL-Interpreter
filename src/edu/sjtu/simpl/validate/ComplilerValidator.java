@@ -174,7 +174,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.debug("Type Error:"+bop.e1.toString()+","+bop.e2.toString()+" both need to be of type 'INT'");
+				Log.error("Type Error:"+bop.e1.toString()+","+bop.e2.toString()+" both need to be of type 'INT'");
 				return null;
 			}
 			return null;
@@ -193,7 +193,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.debug("Type Error...:"+bop.e1.toString()+","+bop.e2.toString()+" both need to be of type 'INT'");
+				Log.error("Type Error...:"+bop.e1.toString()+","+bop.e2.toString()+" both need to be of type 'INT'");
 				return null;
 			}
 			return null;
@@ -211,7 +211,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.debug("Type Error in "+bop.toString()+":both '"+bop.e1.toString()+"' and '"+bop.e2.toString()+"' need to be of type 'BOOL'");
+				Log.error("Type Error in "+bop.toString()+":both '"+bop.e1.toString()+"' and '"+bop.e2.toString()+"' need to be of type 'BOOL'");
 				return null;
 			}
 			return null;

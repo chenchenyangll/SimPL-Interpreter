@@ -8,6 +8,6 @@ public class IntValue extends Value{
 		if(isUndef)
 			return "undef";
 		else
-			return "<" +String.valueOf(value)+">";
+			return String.valueOf(value);
 	}
 }
