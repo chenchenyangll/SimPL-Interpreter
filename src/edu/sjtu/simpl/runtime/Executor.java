@@ -102,9 +102,9 @@ public class Executor implements IExecutor{
 	@Override
 	public Value M(Application app, RunTimeState state) {
 		Log.debug("M Application called,state is:"+state.toString());
+		Value para = (Value) M(app.param,state);
 		boolean issnaped = state.snapshotState();
 		AnonymousFunction fun = (AnonymousFunction) M(app.func, state);
-		Value para = (Value) M(app.param,state);
 		Value rslt = functionCall(fun, para, state);
 		if(issnaped)
 		{
