@@ -66,3 +66,19 @@ let f=fun x->fun y ->fun z->z+x+y in (((f 1) 2) 3) end$
 
 #19
 let m = fun x-> x+1 in let f = fun x->fun y->x+y in ((f 2) (m 1)) end end$
+
+#20
+let m = fun x-> x+1 in let f = fun x->fun y->x+y in ((f ( m 5) ) (m 1)) end end$
+
+#21
+let mod = fun x->fun y->x-x/y*y
+in 
+	let 
+		gcd = fun x-> fun y->
+			if((mod x) y) = 0
+			then y
+			else ((gcd y) ((mod x) y))
+			end
+		in ((gcd 34986) 3087)
+	end
+end$
