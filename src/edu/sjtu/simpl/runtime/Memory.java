@@ -64,8 +64,8 @@ public class Memory {
 	public String toString()
 	{
 		String memMsg = "mem:";
-		Set set = m.entrySet();
-		Iterator it = set.iterator();
+		Set<Entry<Integer, Value>> set = m.entrySet();
+		Iterator<Entry<Integer, Value>> it = set.iterator();
 		while (it.hasNext()) {
 			Entry<Integer, Value> entry = (Entry<Integer, Value>) it.next();
 			memMsg += "<" + entry.getKey() + ","

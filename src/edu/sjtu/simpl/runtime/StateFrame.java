@@ -5,17 +5,12 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import edu.sjtu.simpl.type.BoolType;
-import edu.sjtu.simpl.type.IntType;
-import edu.sjtu.simpl.type.Type;
-import edu.sjtu.simpl.validate.TypeMap;
-
-public class State {
+public class StateFrame {
 	private HashMap<String,Integer> env;
 	
-	private State outerBlockState = null;
+	public StateFrame outerBlockState = null;
 	
-	public State(){
+	public StateFrame(){
 		env = new HashMap<String,Integer>();
 		outerBlockState = null;
 	}
@@ -25,7 +20,7 @@ public class State {
 		env.put(id, addr);
 	}
 	
-	public State onion(State state)
+	public StateFrame onion(StateFrame state)
 	{
 		state.outerBlockState = this;
 		return state;
@@ -33,7 +28,7 @@ public class State {
 	
 	public Integer get(String id)
 	{
-		State st = this;
+		StateFrame st = this;
 		while(st != null)
 		{
 			Integer addr = st.env.get(id);
@@ -48,7 +43,7 @@ public class State {
 	
 	public boolean contains(String id)
 	{
-		State st = this;
+		StateFrame st = this;
 		while(st != null)
 		{
 			if(st.env.containsKey(id))
@@ -61,7 +56,7 @@ public class State {
 	
 	public void set_or_add(String id, int addr)
 	{
-		State st = this;
+		StateFrame st = this;
 		while(st != null)
 		{
 			Integer t = st.env.get(id);
@@ -90,7 +85,7 @@ public class State {
 	{
 		String stateMsg = "{";
 
-		State st = this;
+		StateFrame st = this;
 		while (st != null) {
 			Set set = st.env.entrySet();
 			Iterator it = set.iterator();
@@ -109,13 +104,13 @@ public class State {
 	
 	public static void main(String args[])
 	{
-		State tm1 = new State();
+		StateFrame tm1 = new StateFrame();
 		tm1.put("x", 1);
 		tm1.put("y", 2);
 		
 		tm1.print();
 		
-		State tm2 = new State();
+		StateFrame tm2 = new StateFrame();
 		tm2.put("z", 3);
 		
 		tm2.print();

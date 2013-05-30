@@ -33,7 +33,7 @@ import edu.sjtu.simpl.validate.ComplilerValidator;
 
 public class Executor implements IExecutor{
 
-	public Object do_m(Expression e, State state)
+	public Object do_m(Expression e, RunTimeState state)
 	{
 		Class[] cargs = new Class[2];
 		cargs[0] = e.getClass();
@@ -64,19 +64,19 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Object M(Expression e, State state) {
+	public Object M(Expression e, RunTimeState state) {
 		Log.debug("M Expression called,state is:"+state.toString());
 		return do_m(e,state);
 	}
 
 	@Override
-	public Value M(Value v, State state) {
+	public Value M(Value v, RunTimeState state) {
 		Log.debug("M Value called,state is:"+state.toString());
 		return (Value) do_m(v,state);
 	}
 
 	@Override
-	public Value M(Pair pair, State state) {
+	public Value M(Pair pair, RunTimeState state) {
 		Log.debug("M Pair called,state is:"+state.toString());
 		PairValue pv = new PairValue();
 		pv.e1 = (Value) M(pair.e1,state);
@@ -85,7 +85,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(List list, State state) {
+	public Value M(List list, RunTimeState state) {
 		Log.debug("M List called,state is:"+state.toString());
 		ListValue lv = new ListValue();
 		lv.head = (Value) M(list.head,state);
@@ -94,21 +94,27 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(AnonymousFunction fun, State state) {
+	public Value M(AnonymousFunction fun, RunTimeState state) {
 		Log.debug("M AnonymousFunction called,state is:"+state.toString());
 		return fun;
 	}
 
 	@Override
-	public Value M(Application app, State state) {
+	public Value M(Application app, RunTimeState state) {
 		Log.debug("M Application called,state is:"+state.toString());
+		boolean issnaped = state.snapshotState();
 		AnonymousFunction fun = (AnonymousFunction) M(app.func, state);
 		Value para = (Value) M(app.param,state);
-		return functionCall(fun, para, state);
+		Value rslt = functionCall(fun, para, state);
+		if(issnaped)
+		{
+			state.recover();
+		}
+		return rslt;
 	}
 
 	@Override
-	public Value M(Assignment assign, State state) {
+	public Value M(Assignment assign, RunTimeState state) {
 		Log.debug("M Assignment called,state is:"+state.toString());
 		Variable var = (Variable) assign.var;
 		Value v = (Value) M(assign.val, state);
@@ -117,13 +123,13 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(BinaryOperation bop, State state) {
+	public Value M(BinaryOperation bop, RunTimeState state) {
 		Log.debug("M BinaryOperation called,state is:"+state.toString());
 		
 		return applyBop(bop,state);
 	}
 	
-	public Value applyBop(BinaryOperation bop, State state)
+	public Value applyBop(BinaryOperation bop, RunTimeState state)
 	{
 		String op = bop.getOperator();
 		if(op.equals("+"))
@@ -213,33 +219,33 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(BoolValue bv, State state) {
+	public Value M(BoolValue bv, RunTimeState state) {
 		Log.debug("M BoolValue called,state is:"+state.toString());
 		return bv;
 	}
 
 	@Override
-	public Value M(Bracket brket, State state) {
+	public Value M(Bracket brket, RunTimeState state) {
 		Log.debug("M Bracket called,state is:"+state.toString());
 		return (Value) M(brket.e,state);
 	}
 
 	@Override
-	public Value M(First fst, State state) {
+	public Value M(First fst, RunTimeState state) {
 		Log.debug("M First called,state is:"+state.toString());
 		PairValue pv = (PairValue) M(fst.e, state);
 		return M(pv.e1,state);
 	}
 
 	@Override
-	public Value M(Head head, State state) {
+	public Value M(Head head, RunTimeState state) {
 		Log.debug("M Head called,state is:"+state.toString());
 		ListValue lv = (ListValue) M(head.e,state);
 		return M(lv.head,state);
 	}
 
 	@Override
-	public Value M(IfThenElse ite, State state) {
+	public Value M(IfThenElse ite, RunTimeState state) {
 		Log.debug("M IfThenElse called,state is:"+state.toString());
 		BoolValue bv = (BoolValue) M(ite.condition,state);
 		if(bv.value == true)
@@ -249,17 +255,17 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(IntValue intValue, State state) {
+	public Value M(IntValue intValue, RunTimeState state) {
 		Log.debug("M IntValue called,state is:"+state.toString());
 		return intValue;
 	}
 
 	
 	@Override
-	public Value M(LetInEnd letin, State state) {
+	public Value M(LetInEnd letin, RunTimeState state) {
 		Log.debug("M LetInEnd called,state is:"+state.toString());
 		
-		State nst = new State();
+		StateFrame nst = new StateFrame();
 		// prefetch definition type
 		Log.debug("........M definition start...");
 		Value v = (Value) M(letin.definition, state);
@@ -267,34 +273,35 @@ public class Executor implements IExecutor{
 		Log.debug(v.toString());
 		Integer addr = Memory.getInstance().allocate(v);
 		nst.put(letin.x.name, addr);
-		nst = state.onion(nst);
+		state.popin(nst);
 		
 		//execute in
-		Value vrst = (Value) M(letin.body,nst);
+		Value vrst = (Value) M(letin.body,state);
+		state.popout();
 		return vrst;
 	}
 
 	@Override
-	public Value M(Nil nil, State state) {
+	public Value M(Nil nil, RunTimeState state) {
 		Log.debug("M Nil called,state is:"+state.toString());
 		return new Nil();
 	}
 
 	@Override
-	public Value M(Nop nop, State state) {
+	public Value M(Nop nop, RunTimeState state) {
 		Log.debug("M Nop called,state is:"+state.toString());
 		return new Nop();
 	}
 
 	@Override
-	public Value M(Second scd, State state) {
+	public Value M(Second scd, RunTimeState state) {
 		Log.debug("M Second called,state is:"+state.toString());
 		PairValue pv = (PairValue) M(scd.e, state);
 		return M(pv.e2, state);
 	}
 
 	@Override
-	public Value M(Sequence seq, State state) {
+	public Value M(Sequence seq, RunTimeState state) {
 		Log.debug("M Sequence called,state is:"+state.toString());
 		M(seq.e1,state);
 		
@@ -302,14 +309,14 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Tail tail, State state) {
+	public Value M(Tail tail, RunTimeState state) {
 		Log.debug("M Tail called,state is:"+state.toString());
 		ListValue lv = (ListValue) M(tail.e, state);
 		return M(lv.tail,state);
 	}
 
 	@Override
-	public Value M(UnaryOperation uop, State state) {
+	public Value M(UnaryOperation uop, RunTimeState state) {
 		Log.debug("M UnaryOperation called,state is:"+state.toString());
 		String op = uop.getOperator();
 		if(op.equals("~"))
@@ -328,13 +335,13 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Variable var, State state) {
+	public Value M(Variable var, RunTimeState state) {
 		Log.debug("M Variable called,state is:"+state.toString());
 		return (Value) do_m(getVarValue(var.name,state),state);
 	}
 
 	@Override
-	public Value M(WhileDoEnd wde, State state) {
+	public Value M(WhileDoEnd wde, RunTimeState state) {
 		Log.debug("M WhileDoEnd called,state is:"+state.toString());
 		
 		BoolValue bv = (BoolValue) M(wde.condition, state);
@@ -346,7 +353,7 @@ public class Executor implements IExecutor{
 		return new Nop();
 	}
 	
-	private Value getVarValue(String id, State state)
+	private Value getVarValue(String id, RunTimeState state)
 	{
 		Integer addr = state.get(id);
 		if(addr == null)
@@ -358,23 +365,39 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value functionCall(AnonymousFunction fun, Value para, State state) {
+	public Value functionCall(AnonymousFunction fun, Value para, RunTimeState state) {
 		Log.debug("call "+fun.toString()+",state is:"+state.toString()+",para:"+para.toString());
-		State nst = new State();
+		StateFrame nst = new StateFrame();
 		int addr = Memory.getInstance().allocate(para);
 		nst.put(fun.arg.name, addr);
-		nst = state.onion(nst);
-		return (Value) M(fun.body, nst);
+		Log.debug("before popin...");
+		state.print();
+		state.popin(nst);
+		Log.debug("after popin...");
+		state.print();
+		Value rst = (Value) M(fun.body, state);
+		return rst;
+	}
+	
+	private Value calcuFunBody(Expression e, Value para, StateFrame st)
+	{
+		if(e instanceof AnonymousFunction)
+		{
+			//replace some var
+			
+		}
+		
+		return null;
 	}
 
 	@Override
-	public Value M(PairValue pair, State state) {
+	public Value M(PairValue pair, RunTimeState state) {
 		Log.debug("M PairValue called,state is:"+state.toString());
 		return pair;
 	}
 
 	@Override
-	public Value M(ListValue list, State state) {
+	public Value M(ListValue list, RunTimeState state) {
 		Log.debug("M ListValue called,state is:"+state.toString());
 		return list;
 	}

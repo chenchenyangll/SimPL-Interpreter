@@ -4,7 +4,8 @@ import edu.sjtu.simpl.grammar.SimPL;
 import edu.sjtu.simpl.grammar.SimpleNode;
 import edu.sjtu.simpl.runtime.Executor;
 import edu.sjtu.simpl.runtime.Memory;
-import edu.sjtu.simpl.runtime.State;
+import edu.sjtu.simpl.runtime.RunTimeState;
+import edu.sjtu.simpl.runtime.StateFrame;
 import edu.sjtu.simpl.syntax.Expression;
 import edu.sjtu.simpl.type.Type;
 import edu.sjtu.simpl.util.Log;
@@ -60,7 +61,7 @@ public class Console4 {
 			}
 			Log.debug(".................run time.........................");
 			Executor exe = new Executor();
-			State state = new State();
+			RunTimeState state = new RunTimeState();
 			Log.rslt(exe.M(root, state).toString());
 			Memory.getInstance().clean();
 		}

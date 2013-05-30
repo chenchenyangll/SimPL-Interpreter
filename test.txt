@@ -59,4 +59,4 @@ let f=fun x->fun y -> x+y in ((f 1) 2) end$
 let f=fun x->(while x>0 do x:=x-10 end;x) in (f 25) end$
 
 #17
-let f = fun x -> x + 1 in let x = 1 in (x:= (f 1);x) end end$
+let f = fun x -> x + 1 in let x = 3 in (x:= (f 1);x) end end$
