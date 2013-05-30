@@ -1,5 +1,6 @@
 package edu.sjtu.simpl.runtime;
 
+import edu.sjtu.simpl.runtime.RunTimeState;
 import edu.sjtu.simpl.syntax.AnonymousFunction;
 import edu.sjtu.simpl.syntax.Application;
 import edu.sjtu.simpl.syntax.Assignment;
@@ -28,7 +29,7 @@ import edu.sjtu.simpl.syntax.WhileDoEnd;
 
 public interface IExecutor {
 	
-	public Object M( Expression e, RunTimeState state);
+	public Value M( Expression e, RunTimeState state);
 	public Value M( Value v, RunTimeState state);
 	public Value M( Pair pair, RunTimeState state);
 	public Value M( PairValue pair, RunTimeState state);	
@@ -54,5 +55,32 @@ public interface IExecutor {
 	public Value M( Variable var, RunTimeState state);
 	public Value M( WhileDoEnd wde, RunTimeState state);
 	
-	Value functionCall(AnonymousFunction fun, Value para, RunTimeState state);
+	public Value functionCall(AnonymousFunction fun, Value para, RunTimeState state);
+	
+	
+	public Expression Var2Val( Expression e, StateFrame state);
+	public Expression Var2Val( Value v, StateFrame state);
+	public Expression Var2Val( Pair pair, StateFrame state);
+	public Expression Var2Val( PairValue pair, StateFrame state);	
+	public Expression Var2Val( List list, StateFrame state);
+	public Expression Var2Val( ListValue list, StateFrame state);
+	public Expression Var2Val( AnonymousFunction fun, StateFrame state);
+	public Expression Var2Val( Application app, StateFrame state);
+	public Expression Var2Val( Assignment assign, StateFrame state);
+	public Expression Var2Val( BinaryOperation bop, StateFrame state);
+	public Expression Var2Val( BoolValue bv, StateFrame state);
+	public Expression Var2Val( Bracket brket, StateFrame state);
+	public Expression Var2Val( First fst, StateFrame state);
+	public Expression Var2Val( Head head, StateFrame state);
+	public Expression Var2Val( IfThenElse ite, StateFrame state);
+	public Expression Var2Val( IntValue intValue, StateFrame state);
+	public Expression Var2Val( LetInEnd letin, StateFrame state);
+	public Expression Var2Val( Nil nil, StateFrame state);
+	public Expression Var2Val( Nop nop, StateFrame state);
+	public Expression Var2Val( Second scd, StateFrame state);
+	public Expression Var2Val( Sequence seq, StateFrame state);
+	public Expression Var2Val( Tail tail, StateFrame state);
+	public Expression Var2Val( UnaryOperation uop, StateFrame state);
+	public Expression Var2Val( Variable var, StateFrame state);
+	public Expression Var2Val( WhileDoEnd wde, StateFrame state);
 }

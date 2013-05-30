@@ -82,3 +82,19 @@ in
 		in ((gcd 34986) 3087)
 	end
 end$
+
+#
+let f = fun x -> (if x = 1 then 1 else ( f (x-1))*x end ) in (f 4) end$
+
+#
+let f = fun x->x in let x = 2 in (f 3) + x end end$
+
+#
+let 
+	f = fun x->x*x 
+	in 
+		let x = 2 
+		in 
+			(f (f 3)) + x 
+		end 
+end$

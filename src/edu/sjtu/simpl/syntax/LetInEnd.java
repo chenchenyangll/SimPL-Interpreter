@@ -6,6 +6,6 @@ public class LetInEnd extends Expression{
 	public Expression body;
 	
 	public String toString(){
-		return "<" +"let " + x.toString() + " = " + definition.toString() + " in " + body.toString() + " end"+">";
+		return "let " + x.toString() + " = " + definition.toString() + " in " + body.toString() + " end";
 	}
 }

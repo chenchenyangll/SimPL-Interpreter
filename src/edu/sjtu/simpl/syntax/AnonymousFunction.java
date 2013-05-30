@@ -7,7 +7,7 @@ public class AnonymousFunction extends Value{
 	public Expression body;
 	
 	public String toString(){
-		return "<" + "fun " + arg.toString() + " -> " + body.toString() +">";
+		return "fun " + arg.toString() + " -> " + body.toString();
 	}
 	
 }

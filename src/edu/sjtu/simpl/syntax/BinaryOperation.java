@@ -35,7 +35,7 @@ public class BinaryOperation extends Expression{
 		case or:
 			operator = "or"; break;
 		}
-		return "<" +e1.toString() + " " + operator + " " + e2.toString()+">";
+		return e1.toString() + " " + operator + " " + e2.toString();
 	}
 	
 	public void setOperator(String op)

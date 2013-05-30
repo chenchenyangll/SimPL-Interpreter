@@ -7,6 +7,6 @@ public class Application extends Expression{
 	public Expression param;
 
 	public String toString(){
-		return "<" +"(" + func.toString() + " " + param.toString() + ")" +">";
+		return "(" + func.toString() + " " + param.toString() + ")";
 	}
 }

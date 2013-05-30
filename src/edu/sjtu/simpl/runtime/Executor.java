@@ -2,6 +2,9 @@ package edu.sjtu.simpl.runtime;
 
 import java.lang.reflect.InvocationTargetException;
 
+import edu.sjtu.simpl.runtime.Memory;
+import edu.sjtu.simpl.runtime.RunTimeState;
+import edu.sjtu.simpl.runtime.StateFrame;
 import edu.sjtu.simpl.syntax.AnonymousFunction;
 import edu.sjtu.simpl.syntax.Application;
 import edu.sjtu.simpl.syntax.Assignment;
@@ -28,12 +31,11 @@ import edu.sjtu.simpl.syntax.Value;
 import edu.sjtu.simpl.syntax.Variable;
 import edu.sjtu.simpl.syntax.WhileDoEnd;
 import edu.sjtu.simpl.util.Log;
-import edu.sjtu.simpl.validate.ComplilerValidator;
 
 
 public class Executor implements IExecutor{
 
-	public Object do_m(Expression e, RunTimeState state)
+	public Value do_m(Expression e, RunTimeState state)
 	{
 		Class[] cargs = new Class[2];
 		cargs[0] = e.getClass();
@@ -43,7 +45,7 @@ public class Executor implements IExecutor{
 		args[0] = e;
 		args[1] = state;
 		try {
-			return Executor.class.getMethod("M", cargs).invoke(this, args);
+			return (Value) Executor.class.getMethod("M", cargs).invoke(this, args);
 		} catch (IllegalAccessException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -64,7 +66,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Object M(Expression e, RunTimeState state) {
+	public Value M(Expression e, RunTimeState state) {
 		Log.debug("M Expression called,state is:"+state.toString());
 		return do_m(e,state);
 	}
@@ -103,13 +105,32 @@ public class Executor implements IExecutor{
 	public Value M(Application app, RunTimeState state) {
 		Log.debug("M Application called,state is:"+state.toString());
 		Value para = (Value) M(app.param,state);
-		boolean issnaped = state.snapshotState();
+		
+//		boolean isfuncApp = app.func instanceof Application;
+//		
+//		boolean issnaped = false;
+//		StateFrame st = state.getCurrentState();
+//		if(isfuncApp)
+//		{
+//			issnaped = state.snapshotState();
+//		}			
+		
 		AnonymousFunction fun = (AnonymousFunction) M(app.func, state);
 		Value rslt = functionCall(fun, para, state);
-		if(issnaped)
-		{
-			state.recover();
-		}
+//		state.recoverTo(st);
+//		
+//		if(isfuncApp)
+//		{
+//			if(issnaped)
+//			{
+//				state.recover();
+//			}
+//		}
+//		else
+//		{
+//			state.recoverTo(st);
+//		}
+
 		return rslt;
 	}
 
@@ -371,25 +392,23 @@ public class Executor implements IExecutor{
 		int addr = Memory.getInstance().allocate(para);
 		nst.put(fun.arg.name, addr);
 		Log.debug("before popin...");
-		state.print();
+		Log.debug(state.toString());
 		state.popin(nst);
 		Log.debug("after popin...");
-		state.print();
+		Log.debug(state.toString());
 		Value rst = (Value) M(fun.body, state);
+		if(rst instanceof AnonymousFunction)
+		{
+			Log.debug("rst is fun:"+rst.toString());
+			StateFrame sf = new StateFrame();
+			sf.put(fun.arg.name, addr);
+			rst = (AnonymousFunction) Var2Val(rst, sf);
+			Log.debug("after var2val:"+rst.toString());
+		}
+		state.popout();
 		return rst;
 	}
 	
-	private Value calcuFunBody(Expression e, Value para, StateFrame st)
-	{
-		if(e instanceof AnonymousFunction)
-		{
-			//replace some var
-			
-		}
-		
-		return null;
-	}
-
 	@Override
 	public Value M(PairValue pair, RunTimeState state) {
 		Log.debug("M PairValue called,state is:"+state.toString());
@@ -401,5 +420,297 @@ public class Executor implements IExecutor{
 		Log.debug("M ListValue called,state is:"+state.toString());
 		return list;
 	}
+
+	
+	////////////////////********Var2Val*******//////////////////////
+	
+	public Expression do_transfer(Expression e, StateFrame state)
+	{
+		Class[] cargs = new Class[2];
+		cargs[0] = e.getClass();
+		cargs[1] = state.getClass();
+		
+		Object[] args = new Object[2];
+		args[0] = e;
+		args[1] = state;
+		try {
+			return (Expression) Executor.class.getMethod("Var2Val", cargs).invoke(this, args);
+		} catch (IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (InvocationTargetException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (NoSuchMethodException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (SecurityException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		return null;
+	}
+	
+	
+	@Override
+	public Expression Var2Val(Expression e, StateFrame state) {
+		return do_transfer(e, state);
+	}
+
+	@Override
+	public Expression Var2Val(Value v, StateFrame state) {
+		return do_transfer(v, state);
+	}
+
+	@Override
+	public Expression Var2Val(Pair pair, StateFrame state) {
+		Log.debug("Var2Val Pair called,state is "+state.toString());
+		Expression e1 = Var2Val(pair.e1, state);
+		Expression e2 = Var2Val(pair.e2, state);
+		
+		Pair p = new Pair();
+		p.e1 = e1;
+		p.e2 = e2;
+		return p;
+	}
+
+	@Override
+	public Expression Var2Val(PairValue pair, StateFrame state) {
+		Log.debug("Var2Val PairValue called,state is "+state.toString());
+		return pair;
+	}
+
+	@Override
+	public Expression Var2Val(List list, StateFrame state) {
+		Log.debug("Var2Val List called,state is "+state.toString());
+		Expression head = Var2Val(list.head, state);
+		Expression tail = Var2Val(list.tail, state);
+		
+		List l = new List();
+		l.head = head;
+		l.tail = tail;
+		return l;
+	}
+
+	@Override
+	public Expression Var2Val(ListValue list, StateFrame state) {
+		Log.debug("Var2Val ListValue called,state is "+state.toString());
+		return list;
+	}
+
+	@Override
+	public Expression Var2Val(AnonymousFunction fun, StateFrame state) {
+		Log.debug("Var2Val AnonymousFunction called,state is "+state.toString());
+		Variable v = fun.arg;
+		Expression body = Var2Val(fun.body, state);
+		
+		AnonymousFunction f = new AnonymousFunction();
+		f.arg = v;
+		f.body = body;
+		return f;
+	}
+
+	@Override
+	public Expression Var2Val(Application app, StateFrame state) {
+		Log.debug("Var2Val Application called,state is "+state.toString());
+		Expression func = Var2Val(app.func, state);
+		Expression param = Var2Val(app.param, state);
+		
+		Application  ap = new Application();
+		ap.func = func;
+		ap.param = param;
+		return ap;
+	}
+
+	@Override
+	public Expression Var2Val(Assignment assign, StateFrame state) {
+		Log.debug("Var2Val Assignment called,state is "+state.toString());
+		Expression var = Var2Val(assign.var, state);
+		Expression val = Var2Val(assign.val, state);
+		
+		Assignment as = new Assignment();
+		as.var = var;
+		as.val = val;
+		return as;
+	}
+
+	@Override
+	public Expression Var2Val(BinaryOperation bop, StateFrame state) {
+		Log.debug("Var2Val BinaryOperation called,state is "+state.toString());
+		Expression e1 = Var2Val(bop.e1, state);
+		Expression e2 = Var2Val(bop.e2, state);
+		
+		BinaryOperation binaryOp = new BinaryOperation();
+		binaryOp.e1 = e1;
+		binaryOp.e2 = e2;
+		binaryOp.op = bop.op;
+		return binaryOp;
+	}
+
+	@Override
+	public Expression Var2Val(BoolValue bv, StateFrame state) {
+		Log.debug("Var2Val BoolValue called,state is "+state.toString());
+		return bv;
+	}
+
+	@Override
+	public Expression Var2Val(Bracket brket, StateFrame state) {
+		Log.debug("Var2Val PairValue called,state is "+state.toString());
+		Expression e = Var2Val(brket.e, state);
+		Bracket b = new Bracket();
+		b.e = e;
+		return b;
+	}
+
+	@Override
+	public Expression Var2Val(First fst, StateFrame state) {
+		Log.debug("Var2Val First called,state is "+state.toString());
+		Expression e = Var2Val(fst.e, state);
+		First f = new First();
+		f.e = e;
+		return f;
+	}
+
+	@Override
+	public Expression Var2Val(Head head, StateFrame state) {
+		Log.debug("Var2Val Head called,state is "+state.toString());
+		Expression e = Var2Val(head.e, state);
+		
+		Head h = new Head();
+		h.e = e;
+		return h;
+	}
+
+	@Override
+	public Expression Var2Val(IfThenElse ite, StateFrame state) {
+		Log.debug("Var2Val IfThenElse called,state is "+state.toString());
+		
+		Expression conExpr = Var2Val(ite.condition, state);
+		Expression thenExpr = Var2Val(ite.thenClause, state);
+		Expression elseExpr = Var2Val(ite.elseClause, state);
+		
+		IfThenElse i = new IfThenElse();
+		i.condition = conExpr;
+		i.elseClause = elseExpr;
+		i.thenClause = thenExpr;
+		
+		return i;
+	}
+
+	@Override
+	public Expression Var2Val(IntValue intValue, StateFrame state) {
+		Log.debug("Var2Val IntValue called,state is "+state.toString());
+		return intValue;
+	}
+
+	@Override
+	public Expression Var2Val(LetInEnd letin, StateFrame state) {
+		Log.debug("Var2Val LetInEnd called,state is "+state.toString());
+		Variable x = letin.x;
+		Expression def = Var2Val(letin.definition, state);
+		Expression body = Var2Val(letin.body, state);
+		
+		LetInEnd lie = new LetInEnd();
+		lie.x = x;
+		lie.body = body;
+		lie.definition = def;
+		return lie;
+	}
+
+	@Override
+	public Expression Var2Val(Nil nil, StateFrame state) {
+		Log.debug("Var2Val Nil called,state is "+state.toString());
+		return nil;
+	}
+
+	@Override
+	public Expression Var2Val(Nop nop, StateFrame state) {
+		Log.debug("Var2Val Nop called,state is "+state.toString());
+		return nop;
+	}
+
+	@Override
+	public Expression Var2Val(Second scd, StateFrame state) {
+		Log.debug("Var2Val Second called,state is "+state.toString());
+		Expression e = Var2Val(scd.e, state);
+		Second s = new Second();
+		s.e = e;
+		return s;
+	}
+
+	@Override
+	public Expression Var2Val(Sequence seq, StateFrame state) {
+		Log.debug("Var2Val Sequence called,state is "+state.toString());
+		Expression e1 = Var2Val(seq.e1, state);
+		Expression e2 = Var2Val(seq.e2, state);
+		
+		Sequence s = new Sequence();
+		s.e2 = e2;
+		s.e1 = e1;
+		return s;
+	}
+
+	@Override
+	public Expression Var2Val(Tail tail, StateFrame state) {
+		Log.debug("Var2Val Tail called,state is "+state.toString());
+		Expression e = Var2Val(tail.e, state);
+		
+		Tail t = new Tail();
+		t.e = e;
+		return t;
+	}
+
+	@Override
+	public Expression Var2Val(UnaryOperation uop, StateFrame state) {
+		Log.debug("Var2Val UnaryOperation called,state is "+state.toString());
+		Expression e = Var2Val(uop.e, state);
+		
+		UnaryOperation u = new UnaryOperation();
+		u.e = e;
+		u.op = uop.op;
+		return u;
+	}
+
+	@Override
+	public Expression Var2Val(Variable var, StateFrame state) {
+		Log.debug("Var2Val Variable called,state is "+state.toString());
+		if(!state.contains(var.name))
+		{
+			return var;
+		}
+		Integer addr = state.get(var.name);
+		
+		if(!Memory.getInstance().contains(addr))
+		{
+			return var;
+		}
+		
+		Value v = Memory.getInstance().getValue(addr);
+		if(v == null || v instanceof AnonymousFunction)
+		{
+			return var;
+		}
+		else
+		{
+			return v;
+		}
+	}
+
+	@Override
+	public Expression Var2Val(WhileDoEnd wde, StateFrame state) {
+		Log.debug("Var2Val WhileDoEnd called,state is "+state.toString());
+		Expression cond = Var2Val(wde.condition, state);
+		Expression body = Var2Val(wde.body, state);
+		
+		WhileDoEnd w = new WhileDoEnd();
+		w.condition = cond;
+		w.body = body;
+		return w;
+	}
+
+	
 	
 }

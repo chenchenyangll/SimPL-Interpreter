@@ -3,7 +3,6 @@ package edu.sjtu.simpl.runtime;
 public class RunTimeState {
 	private StateFrame stFrame = null;
 	
-	
 	private StateFrame snapshot = null;
 	
 	public RunTimeState()
@@ -63,7 +62,16 @@ public class RunTimeState {
 		{
 			return false;
 		}
-		
+	}
+	
+	public StateFrame getCurrentState()
+	{
+		return stFrame;
+	}
+	
+	public void recoverTo(StateFrame stFrame)
+	{
+		this.stFrame = stFrame;
 	}
 	
 }

@@ -21,45 +21,6 @@ public class TypeMap {
 		outerBlockTypeMap = null;
 	}
 	
-//	public void put(String id, Type type)
-//	{
-//		this.typeMap.put(id, type);
-//	}
-//	
-//	public Type get(String id)
-//	{
-//		return typeMap.get(id);
-//	}
-//	
-//	public boolean contains(String id)
-//	{
-//		return typeMap.containsKey(id);
-//	}
-//	
-//	public TypeMap onion(TypeMap dest)
-//	{
-//		TypeMap tm = new TypeMap();
-//		//copy origin
-//		Set set =this.typeMap.entrySet();
-//	    Iterator it=set.iterator();
-//	    while(it.hasNext())
-//	    {
-//	    	Entry<String, Type>  entry=(Entry<String, Type>) it.next();
-//	    	tm.put(entry.getKey(),entry.getValue());
-//	    }
-//	    
-//	    //onion with origin
-//	    set =dest.typeMap.entrySet();
-//	    it=set.iterator();
-//	    while(it.hasNext())
-//	    {
-//	    	Entry<String, Type>  entry=(Entry<String, Type>) it.next();
-//	    	tm.put(entry.getKey(),entry.getValue());
-//	    }
-//	    
-//	    return tm;
-//	}
-	
 	public TypeMap onion(TypeMap onion)
 	{
 		onion.outerBlockTypeMap = this;
@@ -135,24 +96,29 @@ public class TypeMap {
 	
 	public void print()
 	{
-
-	    String typeMsg = "{";
-	    
-	    TypeMap tm = this;
-	    while(tm != null)
-	    {
-	    	Set set =tm.typeMap.entrySet();
-	    	Iterator it=set.iterator();
-	    	while(it.hasNext())
-	    	{
-	    		Entry<String, Type>  entry=(Entry<String, Type>) it.next();
-	    		typeMsg += "<"+entry.getKey()+","+entry.getValue().toString()+">,";
-	    	}
-	    	
-	    	tm = tm.outerBlockTypeMap;
-	    }
-	    typeMsg += "}";
-	    System.out.println(typeMsg);
+	    System.out.println(this.toString());
+	}
+	
+	public String toString()
+	{
+		 String typeMsg = "{";
+		    
+		    TypeMap tm = this;
+		    while(tm != null)
+		    {
+		    	Set set =tm.typeMap.entrySet();
+		    	Iterator it=set.iterator();
+		    	while(it.hasNext())
+		    	{
+		    		Entry<String, Type>  entry=(Entry<String, Type>) it.next();
+		    		typeMsg += "<"+entry.getKey()+","+entry.getValue().toString()+">,";
+		    	}
+		    	
+		    	tm = tm.outerBlockTypeMap;
+		    }
+		    typeMsg += "}";
+		    
+		    return typeMsg;
 	}
 	
 	public static void main(String args[])

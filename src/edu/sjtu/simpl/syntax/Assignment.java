@@ -5,6 +5,6 @@ public class Assignment extends Expression{
 	public Expression val;
 	
 	public String toString(){
-		return "<" +var.toString() + " := " + val.toString() +">";
+		return var.toString() + " := " + val.toString();
 	}	
 }

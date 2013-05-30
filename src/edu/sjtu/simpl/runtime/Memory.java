@@ -61,6 +61,11 @@ public class Memory {
 		return m.get(addr);
 	}
 	
+	public boolean contains(Integer addr)
+	{
+		return this.m.containsKey(addr);
+	}
+	
 	public String toString()
 	{
 		String memMsg = "mem:";

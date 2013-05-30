@@ -5,6 +5,6 @@ public class PairValue extends Value{
 	public Value e2;
 	
 	public String toString(){
-		return "<" +"(" + e1.toString() + ", " + e2.toString() + ")"+">";
+		return "(" + e1.toString() + ", " + e2.toString() + ")";
 	}
 }

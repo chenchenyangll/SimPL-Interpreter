@@ -6,7 +6,7 @@ public class Bracket extends Expression{
 	public Expression e;
 	
 	public String toString(){
-		return "<" +"(" + e.toString() + ")"+">";
+		return "(" + e.toString() + ")";
 	}
 
 	@Override

@@ -37,7 +37,7 @@ public class Console4 {
 			try{
 				SyntaxVisitor visitor = new SyntaxVisitor();
 				root = (Expression) n.jjtAccept(visitor, null);
-				System.out.println(root.toString());
+				//System.out.println(root.toString());
 			}
 			catch (Exception e)
 			{

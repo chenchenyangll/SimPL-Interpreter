@@ -2,7 +2,6 @@ package edu.sjtu.simpl.validate;
 
 import java.lang.reflect.InvocationTargetException;
 
-import backup.CompileTimeValidatorOld;
 import edu.sjtu.simpl.syntax.AnonymousFunction;
 import edu.sjtu.simpl.syntax.Application;
 import edu.sjtu.simpl.syntax.Assignment;
@@ -101,7 +100,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		Type bType = V(fun.body,newtm);
 		
 		ft.argType = newtm.get(fun.arg.name);
-		newtm.print();
+		Log.debug(newtm.toString());
 		//Log.debug("retrive argType for "+fun.toString()+"-"+ft.argType.toString()+" got");
 		ft.bodyType = bType;
 		
@@ -131,7 +130,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else if(!(tfun instanceof FunctionType))
 		{
-			Log.error("Type Error in "+app.toString()+", FunctionType expexcted..");
+			Log.error("Type Error in '"+app.toString()+"', FunctionType expexcted..");
 			return null;
 		}
 		else if(tfun instanceof FunctionType)
@@ -141,14 +140,14 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			
 			Type paraType = check_or_set(app.param,tm,argType);
 			Log.debug("after checking para...");
-			tm.print();
+			Log.debug(tm.toString());
 			if(paraType == null)
 			{
 				return null;
 			}
 			else if(!(paraType.equals(argType))&&!(argType instanceof UnknownType))
 			{
-				Log.error("Type Error in "+app.param.toString()+",arg type error,"+argType.toString()+" expected..");
+				Log.error("Type Error in '"+app.param.toString()+"',arg type error,"+argType.toString()+" expected..");
 				return null;
 			}
 		}
@@ -174,7 +173,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.error("Type Error:"+bop.e1.toString()+","+bop.e2.toString()+" both need to be of type 'INT'");
+				Log.error("Type Error:'"+bop.e1.toString()+"','"+bop.e2.toString()+"' both need to be of type 'INT'");
 				return null;
 			}
 			return null;
@@ -193,7 +192,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.error("Type Error...:"+bop.e1.toString()+","+bop.e2.toString()+" both need to be of type 'INT'");
+				Log.error("Type Error:'"+bop.e1.toString()+"','"+bop.e2.toString()+"' both need to be of type 'INT'");
 				return null;
 			}
 			return null;
@@ -211,7 +210,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.error("Type Error in "+bop.toString()+":both '"+bop.e1.toString()+"' and '"+bop.e2.toString()+"' need to be of type 'BOOL'");
+				Log.error("Type Error in '"+bop.toString()+"':both '"+bop.e1.toString()+"' and '"+bop.e2.toString()+"' need to be of type 'BOOL'");
 				return null;
 			}
 			return null;
@@ -242,7 +241,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		if(!(et instanceof PairType))
 		{
-			Log.error("Type Error in"+fst.toString());
+			Log.error("Type Error in '"+fst.toString()+"'");
 			return null;
 		}
 		else
@@ -260,7 +259,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		
 		if(!(et instanceof PairType))
 		{
-			Log.error("Type Error in"+scd.toString());
+			Log.error("Type Error in '"+scd.toString()+"'");
 			return null;
 		}
 		else
@@ -282,7 +281,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			Log.error("Type Error in "+head.toString()+","+head.e.toString()+" need to be a list");
+			Log.error("Type Error in '"+head.toString()+"':'"+head.e.toString()+"' need to be a list");
 			return null;
 		}
 	}
@@ -291,16 +290,16 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	public Type V(IfThenElse ite, TypeMap tm) {
 		Log.debug("validate IfThenElse called...");
 		//check condition
-		tm.print();
+		Log.debug(tm.toString());
 		Type t1 = V(ite.condition,tm);
-		tm.print();
+		Log.debug(tm.toString());
 		if(t1 == null)
 		{
 			return null;
 		}
 		else if(!(t1 instanceof BoolType))
 		{
-			Log.error("Type Error in "+ite.condition.toString()+", BOOL expected..");
+			Log.error("Type Error in '"+ite.condition.toString()+"', BOOL expected..");
 			return null;
 		}
 		
@@ -331,7 +330,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			Log.error("Type Error in "+ite.toString()+",type is different between thenClause:"+ t3.toString() +" and elseClause:"+t2.toString());
+			Log.error("Type Error in '"+ite.toString()+"',type is different between thenClause:"+ t3.toString() +" and elseClause:"+t2.toString());
 			return null;
 		}
 	}
@@ -369,7 +368,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			return null;
 		}
 		Log.debug("after definition let..");
-		newTm.print();
+		Log.debug(newTm.toString());
 		
 		Type bodyType = V(letin.body,newTm);
 		return bodyType;
@@ -399,7 +398,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			Log.error("Type Error in "+list.toString());
+			Log.error("Type Error in '"+list.toString()+"'");
 			return null;
 		}
 	}
@@ -451,7 +450,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		
 		if(!(et instanceof ListType))
 		{
-			Log.error("Type Error in"+tail.toString());
+			Log.error("Type Error in '"+tail.toString()+"'");
 			return null;
 		}
 		else
@@ -492,7 +491,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else
 			{
-				Log.error("Type Error in "+uop.toString()+","+uop.e.toString()+" expected to be a BOOL");
+				Log.error("Type Error in '"+uop.toString()+"', '"+uop.e.toString()+"' expected to be a BOOL");
 				return null;
 			}
 		}
@@ -511,7 +510,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		Log.debug("validate Variable called...");
 		if(!tm.contains(var.name))
 		{
-			Log.debug("variable '"+var.name+"' not declared..");
+			Log.error("variable '"+var.name+"' not declared..");
 			return null;
 		}
 		return tm.get(var.name);
@@ -522,7 +521,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		Log.debug("check_or_set Variable "+var.name+" called...");
 		if(!tm.contains(var.name))
 		{
-			Log.debug("variable '"+var.name+"' not declared..");
+			Log.error("variable '"+var.name+"' not declared..");
 			return null;
 		}
 		//check type
@@ -574,7 +573,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			Log.error("Type Error in "+assign.toString());
+			Log.error("Type Error in '"+assign.toString()+"'");
 			return null;
 		}
 	}
