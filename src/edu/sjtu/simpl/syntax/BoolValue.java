@@ -18,5 +18,10 @@ public class BoolValue extends Value{
 		return new BoolType();
 	}
 	
-	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof BoolValue))
+			return false;
+		return value == ((BoolValue)obj).value;
+	}
 }

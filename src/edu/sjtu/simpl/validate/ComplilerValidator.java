@@ -180,7 +180,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else if(bop.getOperator().equals(">")
 				|| bop.getOperator().equals("<")
-				|| bop.getOperator().equals("=")) 
+				) 
 		{
 			Type t1 = check_or_set(bop.e1, tm, Type.INT);
 			Type t2 = check_or_set(bop.e2, tm, Type.INT);
@@ -215,6 +215,38 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			return null;
 		}
+		else if(bop.getOperator().equals("="))
+		{
+			Type t1 = V(bop.e1, tm);
+			Type t2 = V(bop.e2, tm);
+			
+			if(t1 == null || t2 == null)
+			{
+				return null;
+			}
+			
+			if(t1.equals(Type.UNKNOWN) && !t2.equals(Type.UNKNOWN))
+			{
+				t1 = check_or_set(bop.e2,tm,t2);
+			}
+			
+			if(t2.equals(Type.UNKNOWN) && !t1.equals(Type.UNKNOWN))
+			{
+				t2 = check_or_set(bop.e1,tm,t1);
+			}
+			
+			
+			
+			if(t1.equals(t2))
+			{
+				return new BoolType();
+			}
+			else
+			{
+				Log.error("Type Error in '"+bop.toString()+"':'"+bop.e1.toString()+":"+t1.toString()+"' and '"+bop.e2.toString()+":"+t2.toString() +"' need to be the same type");
+			}
+			
+		}
 
 		return null;
 	}
@@ -239,6 +271,10 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		{
 			return null;
 		}
+		if(et.equals(Type.UNKNOWN))
+		{
+			return Type.UNKNOWN;
+		}
 		if(!(et instanceof PairType))
 		{
 			Log.error("Type Error in '"+fst.toString()+"'");
@@ -257,9 +293,14 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			return null;
 		}
 		
+		if(et.equals(Type.UNKNOWN))
+		{
+			return Type.UNKNOWN;
+		}
+		
 		if(!(et instanceof PairType))
 		{
-			Log.error("Type Error in '"+scd.toString()+"'");
+			Log.error("Type Error in '"+scd.toString()+"'"+"need tobe pairtype");
 			return null;
 		}
 		else
@@ -269,7 +310,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	@Override
 	public Type V(Head head, TypeMap tm) {
 		Log.debug("validate Head called...");
-		Type t = V(head.e,tm);
+		Type t = check_or_set(head.e,tm,new ListType());
 		if(t == null)
 		{
 			return null;
@@ -277,12 +318,12 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		
 		if(t instanceof ListType)
 		{
-			return ((ListType) t).itemType;
+			return ((ListType) t).getItemType();
 		}
 		else
 		{
 			Log.error("Type Error in '"+head.toString()+"':'"+head.e.toString()+"' need to be a list");
-			return null;
+			return null;		
 		}
 	}
 
@@ -387,15 +428,16 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		
 		if(t2 instanceof ListType)
 		{
-			t2 = ((ListType)t2).itemType;
+			t2 = ((ListType)t2).getItemType();
 		}
 		
-		if(t1.equals(t2))
+		if(t1.equals(t2)||t2.equals(Type.UNKNOWN))
 		{
 			ListType t = new ListType();
-			t.itemType = t1;
+			t.setItemType(t1);
 			return t;
 		}
+		
 		else
 		{
 			Log.error("Type Error in '"+list.toString()+"'");
@@ -406,13 +448,15 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	@Override
 	public Type V(Nil nil, TypeMap tm) {
 		Log.debug("validate Nil called...");
-		return null;
+		ListType lt = new ListType();
+		lt.isNil = true;
+		return lt;
 	}
 
 	@Override
 	public Type V(Nop nop, TypeMap tm) {
 		Log.debug("validate Nop called...");
-		return null;
+		return new UnitType();
 	}
 
 	@Override
@@ -518,7 +562,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	
 	private Type check_or_set(Variable var, TypeMap tm, Type t)
 	{
-		Log.debug("check_or_set Variable "+var.name+" called...");
+		Log.debug("check_or_set Variable "+var.name+" called,"+t.toString()+" expected..");
 		if(!tm.contains(var.name))
 		{
 			Log.error("variable '"+var.name+"' not declared..");
@@ -567,13 +611,28 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			return null;
 		}
 		
+		if(t1.equals(Type.UNKNOWN) && !t2.equals(Type.UNKNOWN))
+		{
+			t1 = check_or_set(assign.var,tm,t2);
+		}
+		
+		if(t2.equals(Type.UNKNOWN) && !t1.equals(Type.UNKNOWN))
+		{
+			t2 = check_or_set(assign.val,tm,t1);
+		}
+		
+		if(t2.equals(Type.UNKNOWN) && t1.equals(Type.UNKNOWN))
+		{
+			return Type.UNIT;
+		}
+		
 		if(t1.equals(t2))
 		{
 			return Type.UNIT;
 		}
 		else
 		{
-			Log.error("Type Error in '"+assign.toString()+"'");
+			Log.error("Type Error in '"+assign.toString()+"':"+assign.var.toString()+"->"+t1.toString()+";"+assign.val.toString()+"->"+t2.toString());
 			return null;
 		}
 	}

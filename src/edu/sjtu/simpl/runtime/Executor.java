@@ -47,20 +47,21 @@ public class Executor implements IExecutor{
 		try {
 			return (Value) Executor.class.getMethod("M", cargs).invoke(this, args);
 		} catch (IllegalAccessException e1) {
-			// TODO Auto-generated catch block
+			
 			e1.printStackTrace();
+			System.exit(0);
 		} catch (IllegalArgumentException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			System.exit(0);
 		} catch (InvocationTargetException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			System.exit(0);
 		} catch (NoSuchMethodException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			System.exit(0);
 		} catch (SecurityException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
+			System.exit(0);
 		}
 		return null;
 	}
@@ -196,10 +197,10 @@ public class Executor implements IExecutor{
 		}
 		else if(op.equals("="))
 		{
-			IntValue v1 = (IntValue) M(bop.e1,state);
-			IntValue v2 = (IntValue) M(bop.e2,state);
+			Value v1 = (Value) M(bop.e1,state);
+			Value v2 = (Value) M(bop.e2,state);
 			BoolValue v = new BoolValue();
-			v.value = (v1.value == v2.value);
+			v.value = (v1.equals(v2));
 			return v;
 		}
 		else if(op.equals(">"))
@@ -261,8 +262,18 @@ public class Executor implements IExecutor{
 	@Override
 	public Value M(Head head, RunTimeState state) {
 		Log.debug("M Head called,state is:"+state.toString());
-		ListValue lv = (ListValue) M(head.e,state);
-		return M(lv.head,state);
+		Value headBody =  M(head.e,state);
+		if(headBody instanceof Nil)
+		{
+			return new Nil();
+		}
+		else if(headBody instanceof ListValue)
+		{
+			return M(((ListValue)headBody).head,state);
+		}
+		
+		Log.error("should not reach here..");
+		return null;
 	}
 
 	@Override
@@ -332,8 +343,18 @@ public class Executor implements IExecutor{
 	@Override
 	public Value M(Tail tail, RunTimeState state) {
 		Log.debug("M Tail called,state is:"+state.toString());
-		ListValue lv = (ListValue) M(tail.e, state);
-		return M(lv.tail,state);
+		Value tailBody =  M(tail.e,state);
+		if(tailBody instanceof Nil)
+		{
+			return new Nil();
+		}
+		else if(tailBody instanceof ListValue)
+		{
+			return M(((ListValue)tailBody).tail,state);
+		}
+		
+		Log.error("should not reach here..");
+		return null;
 	}
 
 	@Override
