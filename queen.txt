@@ -1,5 +1,5 @@
 let 
-	check = fun q -> fun p -> fun r ->
+	check = fun q -> fun p -> 
 		let i = 1 in
 			let b = q in
 				let tag = true in
@@ -24,7 +24,7 @@ let
 					while i < n + 1 do
 						let j = 1 in
 							while j < n + 1 do
-								if (((check queens) j) i) 
+								if ((check queens) j) 
 								then
 									queens := j :: queens;
 									j := n + 1

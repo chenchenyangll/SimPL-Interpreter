@@ -1,8 +1,5 @@
 package edu.sjtu.simpl.syntax;
 
-import edu.sjtu.simpl.type.IntType;
-import edu.sjtu.simpl.type.Type;
-import edu.sjtu.simpl.util.Log;
 
 public class BinaryOperation extends Expression{
 	public enum BinaryOperator{
@@ -101,18 +98,5 @@ public class BinaryOperation extends Expression{
 		}
 		return operator;
 	}
-
-	@Override
-	public Type getType() {
-		if(e1.getType().getTypeId() == Type.ID_INT&&e2.getType().getTypeId() == Type.ID_INT)
-		{
-			return new IntType();
-		}
-		
-		Log.error("Type Error!");
-		return null;
-	}
-	
-	
 	
 }

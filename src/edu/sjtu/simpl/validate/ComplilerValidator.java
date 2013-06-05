@@ -385,6 +385,13 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	@Override
 	public Type V(LetInEnd letin, TypeMap tm) {
 		Log.debug("validate LetInEnd called...");
+		//first check the var redefinition
+		if(tm.contains(letin.x.name))
+		{
+			Log.error("Error in '"+letin.toString()+"':variable "+letin.x.name+" redefinition");
+			return null;
+		}
+		
 		
 		TypeMap newTm = new TypeMap();
 		Type liklyType = Type.UNKNOWN;

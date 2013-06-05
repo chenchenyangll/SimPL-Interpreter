@@ -29,6 +29,7 @@ public class RunTimeState {
 	{
 		if(stFrame != null)
 		{
+			stFrame.cleanMem();
 			stFrame = stFrame.outerBlockState;
 		}
 	}

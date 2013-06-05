@@ -42,13 +42,9 @@ public class ListType extends Type{
 	
 	@Override
 	public String toString() {
-		if(isNil)
+		if(itemType == null||itemType.equals(Type.UNKNOWN))
 		{
-			return "list nil";
-		}
-		else if(itemType == null)
-		{
-			return "list unknown";
+			return "list";
 		}
 		
 		return "list["+itemType.toString()+"]";

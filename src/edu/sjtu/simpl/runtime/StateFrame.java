@@ -41,6 +41,19 @@ public class StateFrame {
 		return null;
 	}
 	
+	public void cleanMem()
+	{
+		StateFrame st = this;
+		if (st != null) {
+			Set set = st.env.entrySet();
+			Iterator it = set.iterator();
+			while (it.hasNext()) {
+				Entry<String, Integer> entry = (Entry<String, Integer>) it.next();
+				Memory.getInstance().dallocate(entry.getValue());
+			}
+		}
+	}
+	
 	public boolean contains(String id)
 	{
 		StateFrame st = this;

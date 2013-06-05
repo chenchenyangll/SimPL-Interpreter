@@ -47,10 +47,11 @@ public class Console4 {
 			}
 			Log.debug("..................complier time........................");
 			
+			Type t = null;
 			try{
 				ComplilerValidator validator = new ComplilerValidator();
 				
-				Type t = validator.V(root, new TypeMap());
+				t = validator.V(root, new TypeMap());
 				if(t!=null)
 					Log.info(t.toString());
 			}
@@ -60,10 +61,14 @@ public class Console4 {
 				continue;
 			}
 			Log.debug(".................run time.........................");
-			Executor exe = new Executor();
-			RunTimeState state = new RunTimeState();
-			Log.rslt(exe.M(root, state).toString());
-			Memory.getInstance().clean();
+			if(t!=null)
+			{
+				Executor exe = new Executor();
+				RunTimeState state = new RunTimeState();
+				Log.rslt(exe.M(root, state).toString());
+				Memory.getInstance().printsize();
+				Memory.getInstance().clean();
+			}
 		}
 
 	}

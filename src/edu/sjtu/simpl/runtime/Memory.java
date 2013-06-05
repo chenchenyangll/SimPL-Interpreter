@@ -34,6 +34,7 @@ public class Memory {
 	
 	public int allocate(Value v)
 	{
+		//System.out.println("allocate mem,current size:"+m.size());
 		int addr = getFreeAddr();
 		m.put(addr, v);
 		return addr;
@@ -82,6 +83,11 @@ public class Memory {
 	public void clean()
 	{
 		this.m.clear();
+	}
+	
+	public void printsize()
+	{
+		System.out.println("mem size:" + m.size());
 	}
 	
 	public void print()
