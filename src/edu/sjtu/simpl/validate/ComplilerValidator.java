@@ -130,7 +130,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else if(!(tfun instanceof FunctionType))
 		{
-			Log.error("Type Error in '"+app.toString()+"', FunctionType expexcted..");
+			Log.error("Type Error in '"+app.toString()+"', '"+app.func.toString()+"' need to be with type Function!");
 			return null;
 		}
 		else if(tfun instanceof FunctionType)

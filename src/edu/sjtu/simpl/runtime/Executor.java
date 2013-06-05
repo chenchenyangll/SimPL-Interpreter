@@ -161,8 +161,8 @@ public class Executor implements IExecutor{
 			IntValue v = new IntValue();
 			if(v2.value == 0)
 			{
-				Log.error(bop.e2.toString()+"can not be 0");
-				v.value=0;
+				Log.error(bop.e2.toString()+" can not be 0");
+				v = null;
 			}
 			else
 			{

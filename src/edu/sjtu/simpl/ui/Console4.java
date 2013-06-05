@@ -7,6 +7,7 @@ import edu.sjtu.simpl.runtime.Memory;
 import edu.sjtu.simpl.runtime.RunTimeState;
 import edu.sjtu.simpl.runtime.StateFrame;
 import edu.sjtu.simpl.syntax.Expression;
+import edu.sjtu.simpl.syntax.Value;
 import edu.sjtu.simpl.type.Type;
 import edu.sjtu.simpl.util.Log;
 import edu.sjtu.simpl.validate.ComplilerValidator;
@@ -28,8 +29,14 @@ public class Console4 {
 				n = parser.Program();
 				
 			} catch (Exception e) {
-				System.out.println("Syntax Error!");
-				e.printStackTrace();
+				//System.out.println("Syntax Error!");
+				//e.printStackTrace();
+				//break;
+			}
+			
+			if(n == null)
+			{
+				System.out.println("SimPL> Syntax Error!");
 				continue;
 			}
 			
@@ -52,22 +59,46 @@ public class Console4 {
 				ComplilerValidator validator = new ComplilerValidator();
 				
 				t = validator.V(root, new TypeMap());
-				if(t!=null)
-					Log.info(t.toString());
+				//if(t!=null)
+					//Log.info(t.toString());
 			}
 			catch(Exception e)
 			{
-				e.printStackTrace();
+				//e.printStackTrace();
+				//continue;
+			}
+			
+			if( t == null)
+			{
+				System.out.println("SimPL> Type Error!");
 				continue;
 			}
+			
+			Value v = null;
 			Log.debug(".................run time.........................");
 			if(t!=null)
 			{
+				try
+				{
 				Executor exe = new Executor();
 				RunTimeState state = new RunTimeState();
-				Log.rslt(exe.M(root, state).toString());
-				Memory.getInstance().printsize();
+				v = exe.M(root, state);
+				//Memory.getInstance().printsize();
 				Memory.getInstance().clean();
+				}
+				catch(Exception e)
+				{
+					//e.printStackTrace();
+				}
+			}
+			
+			if( v != null)
+			{
+				System.out.println("SimPL> "+v.toString());
+			}
+			else
+			{
+				System.out.println("SimPL> runtime error!");
 			}
 		}
 
