@@ -2,6 +2,8 @@ package edu.sjtu.simpl.runtime;
 
 import java.lang.reflect.InvocationTargetException;
 
+import edu.sjtu.simpl.exception.RuntimeException;
+import edu.sjtu.simpl.exception.TypeErrorException;
 import edu.sjtu.simpl.runtime.Memory;
 import edu.sjtu.simpl.runtime.RunTimeState;
 import edu.sjtu.simpl.runtime.StateFrame;
@@ -30,6 +32,9 @@ import edu.sjtu.simpl.syntax.UnaryOperation;
 import edu.sjtu.simpl.syntax.Value;
 import edu.sjtu.simpl.syntax.Variable;
 import edu.sjtu.simpl.syntax.WhileDoEnd;
+import edu.sjtu.simpl.type.ListType;
+import edu.sjtu.simpl.type.PairType;
+import edu.sjtu.simpl.type.Type;
 import edu.sjtu.simpl.util.Log;
 
 
@@ -84,21 +89,57 @@ public class Executor implements IExecutor{
 		PairValue pv = new PairValue();
 		pv.e1 = (Value) M(pair.e1,state);
 		pv.e2 = (Value) M(pair.e2,state);
+		//tag type
+		PairType t = new PairType();
+		t.t1 = pv.e1.getType();
+		t.t2 = pv.e2.getType();
+		pv.setType(t);
 		return pv;
 	}
 
 	@Override
-	public Value M(List list, RunTimeState state) {
+	public Value M(List list, RunTimeState state) throws TypeErrorException {
 		//Log.debug("M List called,state is:"+state.toString());
 		ListValue lv = new ListValue();
 		lv.head = (Value) M(list.head,state);
 		lv.tail = (Value) M(list.tail,state);
+		
+		//check validation
+		if(lv.head == null||lv.tail==null)
+		{
+			return null;
+		}
+		
+		
+		Type t1 = lv.head.getType();
+		Type t2 = lv.tail.getType();
+		
+		Type itemtypet2 = null;
+		if(t2 instanceof ListType)
+		{
+			itemtypet2 = ((ListType) t2).getItemType();
+		}
+		else
+		{
+			itemtypet2 = t2;
+		}
+		
+		//check
+		if(!(itemtypet2.equals(t1)))
+		{
+			throw new TypeErrorException();
+		}
+			
+			
+		ListType t = new ListType();
+		t.setItemType(itemtypet2);
 		return lv;
 	}
 
 	@Override
 	public Value M(AnonymousFunction fun, RunTimeState state) {
 		//Log.debug("M AnonymousFunction called,state is:"+state.toString());
+		fun.setType(Type.FUN);
 		return fun;
 	}
 
@@ -112,10 +153,24 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Assignment assign, RunTimeState state) {
+	public Value M(Assignment assign, RunTimeState state) throws RuntimeException, TypeErrorException {
 		//Log.debug("M Assignment called,state is:"+state.toString());
 		Variable var = (Variable) assign.var;
+		//check var declaration
+		Value varv = getVarValue(var.name, state);
+		if(varv == null)
+		{
+			throw  new RuntimeException();
+		}
+		
 		Value v = (Value) M(assign.val, state);
+		
+		//check type
+		if(!v.getType().equals(varv.getType()))
+		{
+			throw  new TypeErrorException();
+		}
+		
 		Memory.getInstance().set(state.get(var.name), v);
 		return new Nop();
 	}
@@ -219,6 +274,7 @@ public class Executor implements IExecutor{
 	@Override
 	public Value M(BoolValue bv, RunTimeState state) {
 		//Log.debug("M BoolValue called,state is:"+state.toString());
+		bv.setType(Type.BOOL);
 		return bv;
 	}
 
@@ -265,6 +321,7 @@ public class Executor implements IExecutor{
 	@Override
 	public Value M(IntValue intValue, RunTimeState state) {
 		//Log.debug("M IntValue called,state is:"+state.toString());
+		intValue.setType(Type.INT);
 		return intValue;
 	}
 
@@ -292,13 +349,17 @@ public class Executor implements IExecutor{
 	@Override
 	public Value M(Nil nil, RunTimeState state) {
 		//Log.debug("M Nil called,state is:"+state.toString());
-		return new Nil();
+		Nil nilrslt  = new Nil();
+		nilrslt.setType(Type.LIST);
+		return nilrslt;
 	}
 
 	@Override
 	public Value M(Nop nop, RunTimeState state) {
 		//Log.debug("M Nop called,state is:"+state.toString());
-		return new Nop();
+		Nop nnop = new Nop();
+		nnop.setType(Type.UNIT);
+		return nnop;
 	}
 
 	@Override

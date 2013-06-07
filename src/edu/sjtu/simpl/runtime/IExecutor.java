@@ -1,5 +1,7 @@
 package edu.sjtu.simpl.runtime;
 
+import edu.sjtu.simpl.exception.RuntimeException;
+import edu.sjtu.simpl.exception.TypeErrorException;
 import edu.sjtu.simpl.runtime.RunTimeState;
 import edu.sjtu.simpl.syntax.AnonymousFunction;
 import edu.sjtu.simpl.syntax.Application;
@@ -33,11 +35,11 @@ public interface IExecutor {
 	public Value M( Value v, RunTimeState state);
 	public Value M( Pair pair, RunTimeState state);
 	public Value M( PairValue pair, RunTimeState state);	
-	public Value M( List list, RunTimeState state);
+	public Value M( List list, RunTimeState state) throws TypeErrorException;
 	public Value M( ListValue list, RunTimeState state);
 	public Value M( AnonymousFunction fun, RunTimeState state);
 	public Value M( Application app, RunTimeState state);
-	public Value M( Assignment assign, RunTimeState state);
+	public Value M( Assignment assign, RunTimeState state) throws RuntimeException, TypeErrorException;
 	public Value M( BinaryOperation bop, RunTimeState state);
 	public Value M( BoolValue bv, RunTimeState state);
 	public Value M( Bracket brket, RunTimeState state);
