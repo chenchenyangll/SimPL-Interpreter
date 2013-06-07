@@ -18,4 +18,4 @@ class ASTAssignment extends SimpleNode {
     return visitor.visit(this, data);
   }
 }
-/* JavaCC - OriginalChecksum=2328fbc25adff54edde8d344336326da (do not edit this line) */
+/* JavaCC - OriginalChecksum=2f82f7ff8b675dcda4bf7747db51d476 (do not edit this line) */

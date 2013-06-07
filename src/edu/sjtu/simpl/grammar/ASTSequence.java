@@ -18,4 +18,4 @@ class ASTSequence extends SimpleNode {
     return visitor.visit(this, data);
   }
 }
-/* JavaCC - OriginalChecksum=6f0d998df7f5955fa5b46cef59cb6fe7 (do not edit this line) */
+/* JavaCC - OriginalChecksum=e38a46d649a248ff929d68f03acfd149 (do not edit this line) */

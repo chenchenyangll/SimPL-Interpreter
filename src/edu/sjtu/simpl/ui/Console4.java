@@ -17,7 +17,6 @@ import edu.sjtu.simpl.visitor.SyntaxVisitor;
 public class Console4 {
 	public static void main(String args [])
 	{
-	  System.out.println("Reading from standard input...");
 	  SimPL parser = new SimPL(System.in);
 	 
 		while (true) {
@@ -28,7 +27,7 @@ public class Console4 {
 				System.out.print("SimPL> ");
 				n = parser.Program();
 				
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				//System.out.println("Syntax Error!");
 				//e.printStackTrace();
 				//break;
@@ -48,8 +47,8 @@ public class Console4 {
 			}
 			catch (Exception e)
 			{
-				System.out.println("visitor error!");
-				e.printStackTrace();
+				//System.out.println("visitor error!");
+				//e.printStackTrace();
 				continue;
 			}
 			Log.debug("..................complier time........................");

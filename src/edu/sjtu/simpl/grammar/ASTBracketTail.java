@@ -18,4 +18,4 @@ class ASTBracketTail extends SimpleNode {
     return visitor.visit(this, data);
   }
 }
-/* JavaCC - OriginalChecksum=116a83b200b3f7eb88fabd911aa5349f (do not edit this line) */
+/* JavaCC - OriginalChecksum=c9323e265c0316dc53b8c145016a65cf (do not edit this line) */
