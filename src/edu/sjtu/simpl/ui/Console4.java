@@ -5,7 +5,6 @@ import edu.sjtu.simpl.grammar.SimpleNode;
 import edu.sjtu.simpl.runtime.Executor;
 import edu.sjtu.simpl.runtime.Memory;
 import edu.sjtu.simpl.runtime.RunTimeState;
-import edu.sjtu.simpl.runtime.StateFrame;
 import edu.sjtu.simpl.syntax.Expression;
 import edu.sjtu.simpl.syntax.Value;
 import edu.sjtu.simpl.type.Type;
@@ -15,93 +14,77 @@ import edu.sjtu.simpl.validate.TypeMap;
 import edu.sjtu.simpl.visitor.SyntaxVisitor;
 
 public class Console4 {
-	public static void main(String args [])
-	{
-	  SimPL parser = new SimPL(System.in);
-	 
+	public static void main(String args[]) {
+		SimPL parser = new SimPL(System.in);
+
 		while (true) {
 			SimpleNode n = null;
 			parser.ReInit(System.in);
-			
+
 			try {
 				System.out.print("SimPL> ");
 				n = parser.Program();
-				
+
 			} catch (Throwable e) {
-				//System.out.println("Syntax Error!");
-				//e.printStackTrace();
-				//break;
+				// System.out.println("Syntax Error!");
+				// e.printStackTrace();
+				// break;
 			}
-			
-			if(n == null)
-			{
+
+			if (n == null) {
 				System.out.println("SimPL> Syntax Error!");
 				continue;
 			}
-			
+
 			Expression root = null;
-			try{
+			try {
 				SyntaxVisitor visitor = new SyntaxVisitor();
 				root = (Expression) n.jjtAccept(visitor, null);
-				//System.out.println(root.toString());
-			}
-			catch (Exception e)
-			{
-				//System.out.println("visitor error!");
-				//e.printStackTrace();
+				// System.out.println(root.toString());
+			} catch (Exception e) {
+				// System.out.println("visitor error!");
+				// e.printStackTrace();
 				continue;
 			}
 			Log.debug("..................complier time........................");
-			
+
 			Type t = null;
-			try{
+			try {
 				ComplilerValidator validator = new ComplilerValidator();
-				
+
 				t = validator.V(root, new TypeMap());
-				//if(t!=null)
-					//Log.info(t.toString());
+				// if(t!=null)
+				// Log.info(t.toString());
+			} catch (Exception e) {
+				// e.printStackTrace();
+				// continue;
 			}
-			catch(Exception e)
-			{
-				//e.printStackTrace();
-				//continue;
-			}
-			
-			if( t == null)
-			{
+
+			if (t == null) {
 				System.out.println("SimPL> Type Error!");
 				continue;
 			}
-			
+
 			Value v = null;
 			Log.debug(".................run time.........................");
-			if(t!=null)
-			{
-				try
-				{
-				Executor exe = new Executor();
-				RunTimeState state = new RunTimeState();
-				v = exe.M(root, state);
-				//Memory.getInstance().printsize();
-				Memory.getInstance().clean();
-				}
-				catch(Exception e)
-				{
-					//e.printStackTrace();
+			if (t != null) {
+				try {
+					Executor exe = new Executor();
+					RunTimeState state = new RunTimeState();
+					v = exe.M(root, state);
+					// Memory.getInstance().printsize();
+					Memory.getInstance().clean();
+				} catch (Exception e) {
+					// e.printStackTrace();
 				}
 			}
-			
-			if( v != null)
-			{
-				System.out.println("SimPL> "+v.toString());
-			}
-			else
-			{
+
+			if (v != null) {
+				System.out.println("SimPL> " + v.toString());
+			} else {
 				System.out.println("SimPL> runtime error!");
 			}
 		}
 
 	}
 }
-
-

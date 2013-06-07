@@ -78,3 +78,13 @@
 /ASTApplicationTail.java
 /ASTBrackedTail.java
 /ASTPairTail.java
+/ASTAdditiveExp.java
+/ASTAndOrExpr.java
+/ASTAssignment.java
+/ASTBracketTail.java
+/ASTDevideOp.java
+/ASTELBExpr.java
+/ASTExpTerm.java
+/ASTMultiveExp.java
+/ASTSequence.java
+/ASTTimesOp.java
