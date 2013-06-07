@@ -1,30 +1,135 @@
 package edu.sjtu.simpl.ui;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.PrintStream;
+
 import edu.sjtu.simpl.grammar.SimPL;
 import edu.sjtu.simpl.grammar.SimpleNode;
+import edu.sjtu.simpl.runtime.Executor;
+import edu.sjtu.simpl.runtime.Memory;
+import edu.sjtu.simpl.runtime.RunTimeState;
+import edu.sjtu.simpl.syntax.Expression;
+import edu.sjtu.simpl.syntax.Value;
+import edu.sjtu.simpl.type.Type;
+import edu.sjtu.simpl.util.Log;
+import edu.sjtu.simpl.validate.ComplilerValidator;
+import edu.sjtu.simpl.validate.TypeMap;
+import edu.sjtu.simpl.visitor.SyntaxVisitor;
 
 public class Console {
-	public static void main(String args [])
-	{
-	  System.out.println("Reading from standard input...");
-	  //System.out.print("Enter an expression like \"1+(2+3)*var;\" :");
-	  SimPL parser = new SimPL(System.in);
-	 
-		while (true) {
-			parser.ReInit(System.in);
+	private static InputStream is = System.in;
+	private static PrintStream os = System.out;
+	private static boolean isShell = true;
+	
+	private static String getRstFileName(String fileName) {
+		int idx = fileName.lastIndexOf(".");
+		String name = fileName.substring(0, idx);
+		return name + ".rst";
+	}
+	
+	private static void parseArgs(String args[]) {
+		if (args.length == 1) {
+			isShell = true;
+		} else if (args.length == 2) {
+			isShell = false;
+			
+			try {
+				is = new FileInputStream(args[1]);
+			} catch (FileNotFoundException e) {
+				System.err.println("Args Error: " + args[1] + " NOT found!");
+				System.exit(-1);
+			}
+			
+			String rstName = getRstFileName(args[1]);
+			File rst = new File(rstName);
+			try {
+				os = new PrintStream(rst);
+			} catch (FileNotFoundException e) {
+				System.err.println("Error: Cannot create " + rstName + " !");
+				System.exit(-1);
+			}
+		} else {
+			System.out.println("Usage1: java -jar SimPL.jar -s");
+			System.out.println("Usage2: java -jar SimPL.jar -f sample.spl");
+			System.exit(-2);
+		}
+	}
+	
+	public static void main(String args[]) {
+		parseArgs(args);
+		
+		SimPL parser = new SimPL(is);
+
+		do {
+			SimpleNode n = null;
+			parser.ReInit(is);
+
 			try {
 				System.out.print("SimPL> ");
-				SimpleNode n = parser.Program();
-				n.dump("---");
-				System.out.println("-------");
-				
-			} catch (Exception e) {
-				System.out.println("Syntax Error!");
-				System.out.println(e.getMessage());
+				n = parser.Program();
+			} catch (Throwable e) {
+				// System.out.println("Syntax Error!");
+				// e.printStackTrace();
+				// break;
 			}
-		}
+
+			if (n == null) {
+				os.println("SimPL> Syntax Error!");
+				continue;
+			}
+
+			Expression root = null;
+			try {
+				SyntaxVisitor visitor = new SyntaxVisitor();
+				root = (Expression) n.jjtAccept(visitor, null);
+				// System.out.println(root.toString());
+			} catch (Exception e) {
+				// System.out.println("visitor error!");
+				// e.printStackTrace();
+				continue;
+			}
+			Log.debug("..................complier time........................");
+
+			Type t = null;
+			try {
+				ComplilerValidator validator = new ComplilerValidator();
+
+				t = validator.V(root, new TypeMap());
+				// if(t!=null)
+				// Log.info(t.toString());
+			} catch (Exception e) {
+				// e.printStackTrace();
+				// continue;
+			}
+
+			if (t == null) {
+				os.println("SimPL> Type Error!");
+				continue;
+			}
+
+			Value v = null;
+			Log.debug(".................run time.........................");
+			if (t != null) {
+				try {
+					Executor exe = new Executor();
+					RunTimeState state = new RunTimeState();
+					v = exe.M(root, state);
+					// Memory.getInstance().printsize();
+					Memory.getInstance().clean();
+				} catch (Exception e) {
+					// e.printStackTrace();
+				}
+			}
+
+			if (v != null) {
+				os.println("SimPL> " + v.toString());
+			} else {
+				os.println("SimPL> Runtime error!");
+			}
+		} while (isShell);
 
 	}
 }
-
-

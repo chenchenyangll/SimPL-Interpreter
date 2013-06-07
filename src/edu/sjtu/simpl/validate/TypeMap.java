@@ -5,7 +5,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import edu.sjtu.simpl.syntax.Expression;
 import edu.sjtu.simpl.type.BoolType;
 import edu.sjtu.simpl.type.IntType;
 import edu.sjtu.simpl.type.Type;

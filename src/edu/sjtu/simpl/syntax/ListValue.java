@@ -5,7 +5,12 @@ public class ListValue extends Value{
 	public Value tail;
 	
 	public String toString(){
-		return head.toString() + "::" + tail.toString();
+		String msg = head.toString();
+		if(!(tail instanceof Nil))
+		{
+			msg += "::" + tail.toString();
+		}
+		return msg;
 	}
 	
 	@Override
