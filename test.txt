@@ -83,6 +83,18 @@ in
 	end
 end$
 
+let mod = fun x->fun y->x-x/y*y
+in 
+	let 
+		gcd = fun x-> fun y->
+			if((mod x) y) = 0
+			then y
+			else x
+			end
+		in ((gcd 34986) 3087)
+	end
+end$
+
 #
 let f = fun x -> (if x = 1 then 1 else ( f (x-1))*x end ) in (f 4) end$
 
@@ -98,3 +110,6 @@ let
 			(f (f 3)) + x 
 		end 
 end$
+
+#
+let x=1 in x and b end$

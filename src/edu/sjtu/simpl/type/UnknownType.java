@@ -13,6 +13,14 @@ public class UnknownType extends Type{
 		// TODO Auto-generated method stub
 		return "unknown";
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		// TODO Auto-generated method stub
+		return obj instanceof Type;
+	}
+	
+	
 	
 	
 

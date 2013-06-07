@@ -2,8 +2,8 @@ package edu.sjtu.simpl.runtime;
 
 import java.lang.reflect.InvocationTargetException;
 
-import edu.sjtu.simpl.exception.RuntimeException;
-import edu.sjtu.simpl.exception.TypeErrorException;
+import edu.sjtu.simpl.exception.SimPLRuntimeException;
+import edu.sjtu.simpl.exception.SimPLTypeException;
 import edu.sjtu.simpl.runtime.Memory;
 import edu.sjtu.simpl.runtime.RunTimeState;
 import edu.sjtu.simpl.runtime.StateFrame;
@@ -40,7 +40,7 @@ import edu.sjtu.simpl.util.Log;
 
 public class Executor implements IExecutor{
 
-	public Value do_m(Expression e, RunTimeState state)
+	public Value do_m(Expression e, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException
 	{
 		Class[] cargs = new Class[2];
 		cargs[0] = e.getClass();
@@ -52,15 +52,26 @@ public class Executor implements IExecutor{
 		try {
 			return (Value) Executor.class.getMethod("M", cargs).invoke(this, args);
 		} catch (IllegalAccessException e1) {
-			
 			e1.printStackTrace();
 			System.exit(0);
 		} catch (IllegalArgumentException e1) {
 			e1.printStackTrace();
 			System.exit(0);
 		} catch (InvocationTargetException e1) {
-			e1.printStackTrace();
-			System.exit(0);
+			Throwable excep = e1.getCause();
+			if(excep instanceof SimPLRuntimeException)
+			{
+				throw (SimPLRuntimeException)excep;
+			}
+			else if(excep instanceof SimPLTypeException)
+			{
+				throw (SimPLTypeException)excep;
+			}
+			else
+			{
+				e1.printStackTrace();
+				System.exit(0);
+			}
 		} catch (NoSuchMethodException e1) {
 			e1.printStackTrace();
 			System.exit(0);
@@ -72,19 +83,19 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Expression e, RunTimeState state) {
+	public Value M(Expression e, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Expression called,state is:"+state.toString());
 		return do_m(e,state);
 	}
 
 	@Override
-	public Value M(Value v, RunTimeState state) {
+	public Value M(Value v, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Value called,state is:"+state.toString());
 		return (Value) do_m(v,state);
 	}
 
 	@Override
-	public Value M(Pair pair, RunTimeState state) {
+	public Value M(Pair pair, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Pair called,state is:"+state.toString());
 		PairValue pv = new PairValue();
 		pv.e1 = (Value) M(pair.e1,state);
@@ -98,7 +109,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(List list, RunTimeState state) throws TypeErrorException {
+	public Value M(List list, RunTimeState state)  throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M List called,state is:"+state.toString());
 		ListValue lv = new ListValue();
 		lv.head = (Value) M(list.head,state);
@@ -124,15 +135,18 @@ public class Executor implements IExecutor{
 			itemtypet2 = t2;
 		}
 		
-		//check
-		if(!(itemtypet2.equals(t1)))
+		if(!(t2.equals(Type.UNKNOWN)))
 		{
-			throw new TypeErrorException();
+			//check
+			if(!(itemtypet2.equals(t1)))
+			{
+				throw new SimPLTypeException("Type Error in " + list.toString());
+			}
 		}
-			
-			
+		
 		ListType t = new ListType();
-		t.setItemType(itemtypet2);
+		t.setItemType(t1);
+		lv.setType(t);
 		return lv;
 	}
 
@@ -144,7 +158,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Application app, RunTimeState state) {
+	public Value M(Application app, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Application called,state is:"+state.toString());
 		Value para = (Value) M(app.param,state);
 		AnonymousFunction fun = (AnonymousFunction) M(app.func, state);
@@ -153,14 +167,14 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Assignment assign, RunTimeState state) throws RuntimeException, TypeErrorException {
+	public Value M(Assignment assign, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Assignment called,state is:"+state.toString());
 		Variable var = (Variable) assign.var;
 		//check var declaration
 		Value varv = getVarValue(var.name, state);
 		if(varv == null)
 		{
-			throw  new RuntimeException();
+			throw  new SimPLRuntimeException("runtime error");
 		}
 		
 		Value v = (Value) M(assign.val, state);
@@ -168,102 +182,200 @@ public class Executor implements IExecutor{
 		//check type
 		if(!v.getType().equals(varv.getType()))
 		{
-			throw  new TypeErrorException();
+			throw  new SimPLTypeException("runtime error");
 		}
 		
 		Memory.getInstance().set(state.get(var.name), v);
-		return new Nop();
+		Nop nnop = new Nop();
+		nnop.setType(Type.UNIT);
+		return nnop;
 	}
 
 	@Override
-	public Value M(BinaryOperation bop, RunTimeState state) {
+	public Value M(BinaryOperation bop, RunTimeState state) throws SimPLTypeException, SimPLRuntimeException {
 		//Log.debug("M BinaryOperation called,state is:"+state.toString());
 		
 		return applyBop(bop,state);
 	}
 	
-	public Value applyBop(BinaryOperation bop, RunTimeState state)
+	public Value applyBop(BinaryOperation bop, RunTimeState state) throws SimPLTypeException, SimPLRuntimeException
 	{
 		String op = bop.getOperator();
 		if(op.equals("+"))
 		{
-			IntValue v1 = (IntValue) M(bop.e1,state);
-			IntValue v2 = (IntValue) M(bop.e2,state);
+			Value v1 = M(bop.e1,state);
+			if(!(v1.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e1.toString()+" need to be 'INT'");
+			}
+			
+			Value v2 = M(bop.e2,state);
+			if(!(v2.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e2.toString()+" need to be 'INT'");
+			}
+			
+			
 			IntValue v = new IntValue();
-			v.value = v1.value+v2.value;
+			v.value = ((IntValue)v1).value + ((IntValue)v2).value;
+			v.setType(Type.INT);
 			return v;
 		}
 		else if(op.equals("-"))
 		{
-			IntValue v1 = (IntValue) M(bop.e1,state);
-			IntValue v2 = (IntValue) M(bop.e2,state);
+			Value v1 = M(bop.e1,state);
+			if(!(v1.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e1.toString()+" need to be 'INT'");
+			}
+			
+			Value v2 = M(bop.e2,state);
+			if(!(v2.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e2.toString()+" need to be 'INT'");
+			}
+			
+			
 			IntValue v = new IntValue();
-			v.value = v1.value-v2.value;
+			v.value = ((IntValue)v1).value - ((IntValue)v2).value;
+			v.setType(Type.INT);
 			return v;
 		}
 		else if(op.equals("*"))
 		{
-			IntValue v1 = (IntValue) M(bop.e1,state);
-			IntValue v2 = (IntValue) M(bop.e2,state);
+			Value v1 = M(bop.e1,state);
+			if(!(v1.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e1.toString()+" need to be 'INT'");
+			}
+			
+			Value v2 = M(bop.e2,state);
+			if(!(v2.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e2.toString()+" need to be 'INT'");
+			}
+			
 			IntValue v = new IntValue();
-			v.value = v1.value*v2.value;
+			v.value = ((IntValue)v1).value * ((IntValue)v2).value;
+			v.setType(Type.INT);
 			return v;
 		}
 		else if(op.equals("/"))
 		{
-			IntValue v1 = (IntValue) M(bop.e1,state);
-			IntValue v2 = (IntValue) M(bop.e2,state);
-			IntValue v = new IntValue();
-			if(v2.value == 0)
+			Value v1 = M(bop.e1,state);
+			if(!(v1.getType().equals(Type.INT)))
 			{
-				Log.error(bop.e2.toString()+" can not be 0");
-				v = null;
-			}
-			else
-			{
-				v.value = v1.value/v2.value;
+				throw new SimPLTypeException(bop.e1.toString()+" need to be 'INT'");
 			}
 			
+			Value v2 = M(bop.e2,state);
+			if(!(v2.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e2.toString()+" need to be 'INT'");
+			}
+			
+			if(((IntValue)v2).value == 0)
+			{
+				throw new SimPLRuntimeException(bop.e2.toString()+" is be 0");
+			}
+			
+			IntValue v = new IntValue();
+			v.value = ((IntValue)v1).value / ((IntValue)v2).value;
+			v.setType(Type.INT);
 			return v;
 		}
 		else if(op.equals("="))
 		{
 			Value v1 = (Value) M(bop.e1,state);
 			Value v2 = (Value) M(bop.e2,state);
+			
+			Type t1 = v1.getType();
+			Type t2 = v2.getType();
+			
+			if(!t1.equals(t2))
+			{
+				throw new SimPLTypeException("Type Error in "+bop.toString());
+			}
+			
 			BoolValue v = new BoolValue();
 			v.value = (v1.equals(v2));
+			v.setType(Type.BOOL);
 			return v;
 		}
 		else if(op.equals(">"))
 		{
-			IntValue v1 = (IntValue) M(bop.e1,state);
-			IntValue v2 = (IntValue) M(bop.e2,state);
+			Value v1 = M(bop.e1,state);
+			if(!(v1.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e1.toString()+" need to be 'INT'");
+			}
+			
+			Value v2 = M(bop.e2,state);
+			if(!(v2.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e2.toString()+" need to be 'INT'");
+			}
+			
 			BoolValue v = new BoolValue();
-			v.value = (v1.value > v2.value);
+			v.value = ((IntValue)v1).value > ((IntValue)v2).value;
+			v.setType(Type.BOOL);
 			return v;
 		}
 		else if(op.equals("<"))
 		{
-			IntValue v1 = (IntValue) M(bop.e1,state);
-			IntValue v2 = (IntValue) M(bop.e2,state);
+			Value v1 = M(bop.e1,state);
+			if(!(v1.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e1.toString()+" need to be 'INT'");
+			}
+			
+			Value v2 = M(bop.e2,state);
+			if(!(v2.getType().equals(Type.INT)))
+			{
+				throw new SimPLTypeException(bop.e2.toString()+" need to be 'INT'");
+			}
+			
 			BoolValue v = new BoolValue();
-			v.value = (v1.value < v2.value);
+			v.value = ((IntValue)v1).value < ((IntValue)v2).value;
+			v.setType(Type.BOOL);
 			return v;
 		}
 		else if(op.equals("and"))
 		{
-			BoolValue v1 = (BoolValue) M(bop.e1,state);
-			BoolValue v2 = (BoolValue) M(bop.e2,state);
+			Value v1 = M(bop.e1,state);
+			if(!(v1.getType().equals(Type.BOOL)))
+			{
+				throw new SimPLTypeException(bop.e1.toString()+" need to be 'BOOL'");
+			}
+			
+			Value v2 = M(bop.e2,state);
+			if(!(v2.getType().equals(Type.BOOL)))
+			{
+				throw new SimPLTypeException(bop.e2.toString()+" need to be 'BOOL'");
+			}
+			
 			BoolValue v = new BoolValue();
-			v.value = (v1.value&&v2.value);
+			v.value = ((BoolValue)v1).value && ((BoolValue)v2).value;
+			v.setType(Type.BOOL);
 			return v;
 		}
 		else if(op.equals("or"))
 		{
-			BoolValue v1 = (BoolValue) M(bop.e1,state);
-			BoolValue v2 = (BoolValue) M(bop.e2,state);
+			Value v1 = M(bop.e1,state);
+			if(!(v1.getType().equals(Type.BOOL)))
+			{
+				throw new SimPLTypeException(bop.e1.toString()+" need to be 'BOOL'");
+			}
+			
+			Value v2 = M(bop.e2,state);
+			if(!(v2.getType().equals(Type.BOOL)))
+			{
+				throw new SimPLTypeException(bop.e2.toString()+" need to be 'BOOL'");
+			}
+			
 			BoolValue v = new BoolValue();
-			v.value = (v1.value||v2.value);
+			v.value = ((BoolValue)v1).value || ((BoolValue)v2).value;
+			v.setType(Type.BOOL);
 			return v;
 		}
 		
@@ -272,27 +384,27 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(BoolValue bv, RunTimeState state) {
+	public Value M(BoolValue bv, RunTimeState state)  throws SimPLRuntimeException, SimPLTypeException{
 		//Log.debug("M BoolValue called,state is:"+state.toString());
 		bv.setType(Type.BOOL);
 		return bv;
 	}
 
 	@Override
-	public Value M(Bracket brket, RunTimeState state) {
+	public Value M(Bracket brket, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Bracket called,state is:"+state.toString());
 		return (Value) M(brket.e,state);
 	}
 
 	@Override
-	public Value M(First fst, RunTimeState state) {
+	public Value M(First fst, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M First called,state is:"+state.toString());
 		PairValue pv = (PairValue) M(fst.e, state);
 		return M(pv.e1,state);
 	}
 
 	@Override
-	public Value M(Head head, RunTimeState state) {
+	public Value M(Head head, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Head called,state is:"+state.toString());
 		Value headBody =  M(head.e,state);
 		if(headBody instanceof Nil)
@@ -309,7 +421,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(IfThenElse ite, RunTimeState state) {
+	public Value M(IfThenElse ite, RunTimeState state)  throws SimPLRuntimeException, SimPLTypeException{
 		//Log.debug("M IfThenElse called,state is:"+state.toString());
 		BoolValue bv = (BoolValue) M(ite.condition,state);
 		if(bv.value == true)
@@ -319,7 +431,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(IntValue intValue, RunTimeState state) {
+	public Value M(IntValue intValue, RunTimeState state)  throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M IntValue called,state is:"+state.toString());
 		intValue.setType(Type.INT);
 		return intValue;
@@ -327,7 +439,7 @@ public class Executor implements IExecutor{
 
 	
 	@Override
-	public Value M(LetInEnd letin, RunTimeState state) {
+	public Value M(LetInEnd letin, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M LetInEnd called,state is:"+state.toString());
 		
 		StateFrame nst = new StateFrame();
@@ -347,7 +459,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Nil nil, RunTimeState state) {
+	public Value M(Nil nil, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Nil called,state is:"+state.toString());
 		Nil nilrslt  = new Nil();
 		nilrslt.setType(Type.LIST);
@@ -363,14 +475,14 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Second scd, RunTimeState state) {
+	public Value M(Second scd, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Second called,state is:"+state.toString());
 		PairValue pv = (PairValue) M(scd.e, state);
 		return M(pv.e2, state);
 	}
 
 	@Override
-	public Value M(Sequence seq, RunTimeState state) {
+	public Value M(Sequence seq, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Sequence called,state is:"+state.toString());
 		M(seq.e1,state);
 		
@@ -378,7 +490,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(Tail tail, RunTimeState state) {
+	public Value M(Tail tail, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Tail called,state is:"+state.toString());
 		Value tailBody =  M(tail.e,state);
 		if(tailBody instanceof Nil)
@@ -395,7 +507,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value M(UnaryOperation uop, RunTimeState state) {
+	public Value M(UnaryOperation uop, RunTimeState state)  throws SimPLRuntimeException, SimPLTypeException{
 		//Log.debug("M UnaryOperation called,state is:"+state.toString());
 		String op = uop.getOperator();
 		if(op.equals("~"))
@@ -413,14 +525,20 @@ public class Executor implements IExecutor{
 		return null;
 	}
 
+	//every var needs to be defined
 	@Override
-	public Value M(Variable var, RunTimeState state) {
+	public Value M(Variable var, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("M Variable called,state is:"+state.toString());
+		Value v = getVarValue(var.name, state);
+		if(v==null)
+		{
+			throw new SimPLRuntimeException(var.name+" not declared!");
+		}
 		return (Value) do_m(getVarValue(var.name,state),state);
 	}
 
 	@Override
-	public Value M(WhileDoEnd wde, RunTimeState state) {
+	public Value M(WhileDoEnd wde, RunTimeState state)  throws SimPLRuntimeException, SimPLTypeException{
 		//Log.debug("M WhileDoEnd called,state is:"+state.toString());
 		
 		BoolValue bv = (BoolValue) M(wde.condition, state);
@@ -444,7 +562,7 @@ public class Executor implements IExecutor{
 	}
 
 	@Override
-	public Value functionCall(AnonymousFunction fun, Value para, RunTimeState state) {
+	public Value functionCall(AnonymousFunction fun, Value para, RunTimeState state) throws SimPLRuntimeException, SimPLTypeException {
 		//Log.debug("call "+fun.toString()+",state is:"+state.toString()+",para:"+para.toString());
 		StateFrame nst = new StateFrame();
 		int addr = Memory.getInstance().allocate(para);
