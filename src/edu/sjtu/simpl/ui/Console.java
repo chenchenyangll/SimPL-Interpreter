@@ -1,5 +1,11 @@
 package edu.sjtu.simpl.ui;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.PrintStream;
+
 import edu.sjtu.simpl.grammar.SimPL;
 import edu.sjtu.simpl.grammar.SimpleNode;
 import edu.sjtu.simpl.runtime.Executor;
@@ -13,18 +19,57 @@ import edu.sjtu.simpl.validate.ComplilerValidator;
 import edu.sjtu.simpl.validate.TypeMap;
 import edu.sjtu.simpl.visitor.SyntaxVisitor;
 
-public class Console4 {
+public class Console {
+	private static InputStream is = System.in;
+	private static PrintStream os = System.out;
+	private static boolean isShell = true;
+	
+	private static String getRstFileName(String fileName) {
+		int idx = fileName.lastIndexOf(".");
+		String name = fileName.substring(0, idx);
+		return name + ".rst";
+	}
+	
+	private static void parseArgs(String args[]) {
+		if (args.length == 1) {
+			isShell = true;
+		} else if (args.length == 2) {
+			isShell = false;
+			
+			try {
+				is = new FileInputStream(args[1]);
+			} catch (FileNotFoundException e) {
+				System.err.println("Args Error: " + args[1] + " NOT found!");
+				System.exit(-1);
+			}
+			
+			String rstName = getRstFileName(args[1]);
+			File rst = new File(rstName);
+			try {
+				os = new PrintStream(rst);
+			} catch (FileNotFoundException e) {
+				System.err.println("Error: Cannot create " + rstName + " !");
+				System.exit(-1);
+			}
+		} else {
+			System.out.println("Usage1: java -jar SimPL.jar -s");
+			System.out.println("Usage2: java -jar SimPL.jar -f sample.spl");
+			System.exit(-2);
+		}
+	}
+	
 	public static void main(String args[]) {
-		SimPL parser = new SimPL(System.in);
+		parseArgs(args);
+		
+		SimPL parser = new SimPL(is);
 
-		while (true) {
+		do {
 			SimpleNode n = null;
-			parser.ReInit(System.in);
+			parser.ReInit(is);
 
 			try {
 				System.out.print("SimPL> ");
 				n = parser.Program();
-
 			} catch (Throwable e) {
 				// System.out.println("Syntax Error!");
 				// e.printStackTrace();
@@ -32,7 +77,7 @@ public class Console4 {
 			}
 
 			if (n == null) {
-				System.out.println("SimPL> Syntax Error!");
+				os.println("SimPL> Syntax Error!");
 				continue;
 			}
 
@@ -61,7 +106,7 @@ public class Console4 {
 			}
 
 			if (t == null) {
-				System.out.println("SimPL> Type Error!");
+				os.println("SimPL> Type Error!");
 				continue;
 			}
 
@@ -80,11 +125,11 @@ public class Console4 {
 			}
 
 			if (v != null) {
-				System.out.println("SimPL> " + v.toString());
+				os.println("SimPL> " + v.toString());
 			} else {
-				System.out.println("SimPL> runtime error!");
+				os.println("SimPL> Runtime error!");
 			}
-		}
+		} while (isShell);
 
 	}
 }
