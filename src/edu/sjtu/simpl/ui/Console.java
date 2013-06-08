@@ -23,6 +23,7 @@ public class Console {
 	private static InputStream is = System.in;
 	private static PrintStream os = System.out;
 	private static boolean isShell = true;
+	private static String cmdPrefix = "";
 	
 	private static String getRstFileName(String fileName) {
 		int idx = fileName.lastIndexOf(".");
@@ -33,6 +34,7 @@ public class Console {
 	private static void parseArgs(String args[]) {
 		if (args.length == 1) {
 			isShell = true;
+			cmdPrefix = "SimPL>";
 		} else if (args.length == 2) {
 			isShell = false;
 			
@@ -68,7 +70,7 @@ public class Console {
 			parser.ReInit(is);
 
 			try {
-				System.out.print("SimPL> ");
+				System.out.print(cmdPrefix);
 				n = parser.Program();
 			} catch (Throwable e) {
 				// System.out.println("Syntax Error!");

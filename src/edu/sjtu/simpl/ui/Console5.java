@@ -26,6 +26,7 @@ public class Console5 {
 	private static InputStream is = System.in;
 	private static PrintStream os = System.out;
 	private static boolean isShell = true;
+	private static String cmdPrefix = "";
 
 	private static String getRstFileName(String fileName) {
 		int idx = fileName.lastIndexOf(".");
@@ -36,6 +37,7 @@ public class Console5 {
 	private static void parseArgs(String args[]) {
 		if (args.length == 1) {
 			isShell = true;
+			cmdPrefix = "SimPL> ";
 		} else if (args.length == 2) {
 			isShell = false;
 
@@ -71,7 +73,7 @@ public class Console5 {
 			parser.ReInit(is);
 
 			try {
-				System.out.print("SimPL> ");
+				System.out.print(cmdPrefix);
 				n = parser.Program();
 			} catch (Throwable e) {
 				// System.out.println("Syntax Error!");
@@ -80,7 +82,7 @@ public class Console5 {
 			}
 
 			if (n == null) {
-				os.println("SimPL> Syntax Error!");
+				os.println(cmdPrefix + "Syntax Error!");
 				continue;
 			}
 
@@ -94,24 +96,6 @@ public class Console5 {
 				// e.printStackTrace();
 				continue;
 			}
-			//Log.debug("..................complier time........................");
-
-//			Type t = null;
-//			try {
-//				ComplilerValidator validator = new ComplilerValidator();
-//
-//				t = validator.V(root, new TypeMap());
-//				// if(t!=null)
-//				// Log.info(t.toString());
-//			} catch (Exception e) {
-//				// e.printStackTrace();
-//				// continue;
-//			}
-//
-//			if (t == null) {
-//				os.println("SimPL> Type Error!");
-//				continue;
-//			}
 
 			Value v = null;
 			//Log.debug(".................run time.........................");
@@ -122,13 +106,13 @@ public class Console5 {
 				v = exe.M(root, state);
 				Memory.getInstance().clean();
 			} catch (SimPLTypeException e) {
-				os.println("SimPL> Type Error:" + e.getMessage());
+				os.println(cmdPrefix+"Type Error:" + e.getMessage());
 			} catch (SimPLRuntimeException e) {
-				os.println("SimPL> runtime error:" + e.getMessage());
+				os.println(cmdPrefix+"runtime error:" + e.getMessage());
 			}
 
 			if (v != null) {
-				os.println("SimPL> " + v.toString());
+				os.println(cmdPrefix + v.toString());
 			}
 			
 		} while (isShell);
