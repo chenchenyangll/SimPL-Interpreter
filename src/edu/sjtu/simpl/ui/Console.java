@@ -6,15 +6,18 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintStream;
 
+import edu.sjtu.simpl.exception.SimPLNotDefinedException;
+import edu.sjtu.simpl.exception.SimPLRuntimeException;
+import edu.sjtu.simpl.exception.SimPLTypeException;
 import edu.sjtu.simpl.grammar.SimPL;
 import edu.sjtu.simpl.grammar.SimpleNode;
 import edu.sjtu.simpl.runtime.Executor;
+import edu.sjtu.simpl.runtime.IExecutor;
 import edu.sjtu.simpl.runtime.Memory;
 import edu.sjtu.simpl.runtime.RunTimeState;
 import edu.sjtu.simpl.syntax.Expression;
 import edu.sjtu.simpl.syntax.Value;
 import edu.sjtu.simpl.type.Type;
-import edu.sjtu.simpl.util.Log;
 import edu.sjtu.simpl.validate.ComplilerValidator;
 import edu.sjtu.simpl.validate.TypeMap;
 import edu.sjtu.simpl.visitor.SyntaxVisitor;
@@ -24,27 +27,27 @@ public class Console {
 	private static PrintStream os = System.out;
 	private static boolean isShell = true;
 	private static String cmdPrefix = "";
-	
+
 	private static String getRstFileName(String fileName) {
 		int idx = fileName.lastIndexOf(".");
 		String name = fileName.substring(0, idx);
 		return name + ".rst";
 	}
-	
+
 	private static void parseArgs(String args[]) {
 		if (args.length == 1) {
 			isShell = true;
-			cmdPrefix = "SimPL>";
+			cmdPrefix = "SimPL> ";
 		} else if (args.length == 2) {
 			isShell = false;
-			
+
 			try {
 				is = new FileInputStream(args[1]);
 			} catch (FileNotFoundException e) {
 				System.err.println("Args Error: " + args[1] + " NOT found!");
 				System.exit(-1);
 			}
-			
+
 			String rstName = getRstFileName(args[1]);
 			File rst = new File(rstName);
 			try {
@@ -59,10 +62,10 @@ public class Console {
 			System.exit(-2);
 		}
 	}
-	
+
 	public static void main(String args[]) {
 		parseArgs(args);
-		
+
 		SimPL parser = new SimPL(is);
 
 		do {
@@ -79,7 +82,7 @@ public class Console {
 			}
 
 			if (n == null) {
-				os.println("SimPL> Syntax Error!");
+				os.println(cmdPrefix + "Syntax Error!");
 				continue;
 			}
 
@@ -89,48 +92,47 @@ public class Console {
 				root = (Expression) n.jjtAccept(visitor, null);
 				// System.out.println(root.toString());
 			} catch (Exception e) {
-				// System.out.println("visitor error!");
-				// e.printStackTrace();
 				continue;
 			}
-			Log.debug("..................complier time........................");
+			
+			//Log.debug("..................complier time........................");
 
+			//Log.debug("..................complier time........................");
 			Type t = null;
 			try {
 				ComplilerValidator validator = new ComplilerValidator();
 
 				t = validator.V(root, new TypeMap());
-				// if(t!=null)
-				// Log.info(t.toString());
-			} catch (Exception e) {
-				// e.printStackTrace();
-				// continue;
+			} catch(SimPLTypeException e)
+			{
+				os.println(cmdPrefix + "Type Error:"+e.getMessage());
+			}catch(SimPLNotDefinedException e)
+			{
+				os.println(cmdPrefix + "Runtime Error:"+e.getMessage());
 			}
-
+			
 			if (t == null) {
-				os.println("SimPL> Type Error!");
 				continue;
 			}
 
 			Value v = null;
-			Log.debug(".................run time.........................");
-			if (t != null) {
-				try {
-					Executor exe = new Executor();
-					RunTimeState state = new RunTimeState();
-					v = exe.M(root, state);
-					// Memory.getInstance().printsize();
-					Memory.getInstance().clean();
-				} catch (Exception e) {
-					// e.printStackTrace();
-				}
+			//Log.debug(".................run time.........................");
+
+			try {
+				IExecutor exe = new Executor();
+				RunTimeState state = new RunTimeState();
+				v = exe.M(root, state);
+				Memory.getInstance().clean();
+			} catch (SimPLTypeException e) {
+				os.println(cmdPrefix+"Type Error:" + e.getMessage());
+			} catch (SimPLRuntimeException e) {
+				os.println(cmdPrefix+"runtime error:" + e.getMessage());
 			}
 
 			if (v != null) {
-				os.println("SimPL> " + v.toString());
-			} else {
-				os.println("SimPL> Runtime error!");
+				os.println(cmdPrefix + v.toString());
 			}
+			
 		} while (isShell);
 
 	}
