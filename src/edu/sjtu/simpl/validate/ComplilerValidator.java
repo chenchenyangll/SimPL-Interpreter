@@ -2,6 +2,8 @@ package edu.sjtu.simpl.validate;
 
 import java.lang.reflect.InvocationTargetException;
 
+import edu.sjtu.simpl.exception.SimPLNotDefinedException;
+import edu.sjtu.simpl.exception.SimPLTypeException;
 import edu.sjtu.simpl.syntax.AnonymousFunction;
 import edu.sjtu.simpl.syntax.Application;
 import edu.sjtu.simpl.syntax.Assignment;
@@ -37,7 +39,7 @@ import edu.sjtu.simpl.util.Log;
 
 public class ComplilerValidator implements IComplieTimeValidator{
 
-	public Type validate(Expression e, TypeMap tm)
+	public Type validate(Expression e, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException
 	{
 		Class[] cargs = new Class[2];
 		cargs[0] = e.getClass();
@@ -55,8 +57,20 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		} catch (InvocationTargetException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			Throwable excep = e1.getCause();
+			if(excep instanceof SimPLNotDefinedException)
+			{
+				throw (SimPLNotDefinedException)excep;
+			}
+			else if(excep instanceof SimPLTypeException)
+			{
+				throw (SimPLTypeException)excep;
+			}
+			else
+			{
+				e1.printStackTrace();
+				System.exit(0);
+			}
 		} catch (NoSuchMethodException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
@@ -68,7 +82,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		return null;
 	}
 	
-	private Type check_or_set(Expression e, TypeMap tm, Type t)
+	private Type check_or_set(Expression e, TypeMap tm, Type t)throws SimPLNotDefinedException, SimPLTypeException
 	{
 		if(e instanceof Variable)
 		{
@@ -81,14 +95,14 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	}
 	
 	@Override
-	public Type V(Expression e, TypeMap tm) {
-		Log.debug("validate Expression called...");
+	public Type V(Expression e, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Expression called...");
 		return validate(e,tm);
 	}
 
 	@Override
-	public Type V(AnonymousFunction fun, TypeMap tm) {
-		Log.debug("validate AnonymousFunction called...");
+	public Type V(AnonymousFunction fun, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate AnonymousFunction called...");
 		FunctionType ft = new FunctionType();
 		
 		TypeMap newtm = new TypeMap();
@@ -100,8 +114,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		Type bType = V(fun.body,newtm);
 		
 		ft.argType = newtm.get(fun.arg.name);
-		Log.debug(newtm.toString());
-		//Log.debug("retrive argType for "+fun.toString()+"-"+ft.argType.toString()+" got");
+		//Log.debug(newtm.toString());
+		////Log.debug("retrive argType for "+fun.toString()+"-"+ft.argType.toString()+" got");
 		ft.bodyType = bType;
 		
 		if(ft.argType == null)
@@ -117,8 +131,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	}
 
 	@Override
-	public Type V(Application app, TypeMap tm) {
-		Log.debug("validate Application called...");
+	public Type V(Application app, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Application called...");
 		Type tfun = V(app.func,tm);
 		
 		Type argType = null;
@@ -130,8 +144,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else if(!(tfun instanceof FunctionType))
 		{
-			Log.error("Type Error in '"+app.toString()+"', '"+app.func.toString()+"' need to be with type Function!");
-			return null;
+			throw new SimPLTypeException("Type Error in '"+app.toString()+"', '"+app.func.toString()+"' need to be with type Function!");
+			//return null;
 		}
 		else if(tfun instanceof FunctionType)
 		{	
@@ -139,24 +153,24 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			bodyType = ((FunctionType) tfun).bodyType;
 			
 			Type paraType = check_or_set(app.param,tm,argType);
-			Log.debug("after checking para...");
-			Log.debug(tm.toString());
+			//Log.debug("after checking para...");
+			//Log.debug(tm.toString());
 			if(paraType == null)
 			{
 				return null;
 			}
 			else if(!(paraType.equals(argType))&&!(argType instanceof UnknownType))
 			{
-				Log.error("Type Error in '"+app.param.toString()+"',arg type error,"+argType.toString()+" expected..");
-				return null;
+				throw new SimPLTypeException("Type Error in '"+app.param.toString()+"',arg type error,"+argType.toString()+" expected..");
+//				return null;
 			}
 		}
 		return bodyType;
 	}
 
 	@Override
-	public Type V(BinaryOperation bop, TypeMap tm) {
-		Log.debug("validate BinaryOperation called...");
+	public Type V(BinaryOperation bop, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate BinaryOperation called...");
 		if (bop.getOperator().equals("+") 
 				|| bop.getOperator().equals("-")
 				|| bop.getOperator().equals("*")
@@ -168,13 +182,13 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			if ( (Type.INT.equals(t1)||Type.UNKNOWN.equals(t1))
 					&&( Type.INT.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
-				//Log.debug("validate +-*/ ok..");
+				////Log.debug("validate +-*/ ok..");
 				return Type.INT;
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.error("Type Error:'"+bop.e1.toString()+"','"+bop.e2.toString()+"' both need to be of type 'INT'");
-				return null;
+				throw new SimPLTypeException("Type Error:'"+bop.e1.toString()+"','"+bop.e2.toString()+"' both need to be of type 'INT'");
+//				return null;
 			}
 			return null;
 		}
@@ -187,13 +201,13 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			if ( (Type.INT.equals(t1)||Type.UNKNOWN.equals(t1))
 					&&( Type.INT.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
-				//Log.debug("validate >< ok..");
+				////Log.debug("validate >< ok..");
 				return Type.BOOL;
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.error("Type Error:'"+bop.e1.toString()+"','"+bop.e2.toString()+"' both need to be of type 'INT'");
-				return null;
+				throw new SimPLTypeException("Type Error:'"+bop.e1.toString()+"','"+bop.e2.toString()+"' both need to be of type 'INT'");
+//				return null;
 			}
 			return null;
 		}
@@ -205,13 +219,13 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			if ( (Type.BOOL.equals(t1)||Type.UNKNOWN.equals(t1))
 					&&( Type.BOOL.equals(t2)||Type.UNKNOWN.equals(t2)))
 			{
-				//Log.debug("validate and or ok..");
+				////Log.debug("validate and or ok..");
 				return Type.BOOL;
 			}
 			else if(t1 != null && t2 != null)
 			{
-				Log.error("Type Error in '"+bop.toString()+"':both '"+bop.e1.toString()+"' and '"+bop.e2.toString()+"' need to be of type 'BOOL'");
-				return null;
+				throw new SimPLTypeException("Type Error in '"+bop.toString()+"':both '"+bop.e1.toString()+"' and '"+bop.e2.toString()+"' need to be of type 'BOOL'");
+//				return null;
 			}
 			return null;
 		}
@@ -243,7 +257,7 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else
 			{
-				Log.error("Type Error in '"+bop.toString()+"':'"+bop.e1.toString()+":"+t1.toString()+"' and '"+bop.e2.toString()+":"+t2.toString() +"' need to be the same type");
+				throw new SimPLTypeException("Type Error in '"+bop.toString()+"':'"+bop.e1.toString()+":"+t1.toString()+"' and '"+bop.e2.toString()+":"+t2.toString() +"' need to be the same type");
 			}
 			
 		}
@@ -253,19 +267,19 @@ public class ComplilerValidator implements IComplieTimeValidator{
 
 	@Override
 	public Type V(BoolValue bv, TypeMap tm) {
-		Log.debug("validate BoolValue called...");
+		//Log.debug("validate BoolValue called...");
 		return new BoolType();
 	}
 
 	@Override
-	public Type V(Bracket brket, TypeMap tm) {
-		Log.debug("validate Bracket called...");
+	public Type V(Bracket brket, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Bracket called...");
 		return V(brket.e,tm);
 	}
 
 	@Override
-	public Type V(First fst, TypeMap tm) {
-		Log.debug("validate First called...");
+	public Type V(First fst, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate First called...");
 		Type et = V(fst.e, tm);
 		if(et == null)
 		{
@@ -277,16 +291,16 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		if(!(et instanceof PairType))
 		{
-			Log.error("Type Error in '"+fst.toString()+"'");
-			return null;
+			throw new SimPLTypeException("Type Error in '"+fst.toString()+"'");
+//			return null;
 		}
 		else
 			return ((PairType)et).t1;
 	}
 	
 	@Override
-	public Type V(Second scd, TypeMap tm) {
-		Log.debug("validate Second called...");
+	public Type V(Second scd, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Second called...");
 		Type et = V(scd.e, tm);
 		if(et == null)
 		{
@@ -300,16 +314,16 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		
 		if(!(et instanceof PairType))
 		{
-			Log.error("Type Error in '"+scd.toString()+"'"+"need tobe pairtype");
-			return null;
+			throw new SimPLTypeException("Type Error in '"+scd.toString()+"'"+"need tobe pairtype");
+//			return null;
 		}
 		else
 			return ((PairType)et).t2;
 	}
 
 	@Override
-	public Type V(Head head, TypeMap tm) {
-		Log.debug("validate Head called...");
+	public Type V(Head head, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Head called...");
 		Type t = check_or_set(head.e,tm,new ListType());
 		if(t == null)
 		{
@@ -322,26 +336,26 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			Log.error("Type Error in '"+head.toString()+"':'"+head.e.toString()+"' need to be a list");
-			return null;		
+			throw new SimPLTypeException("Type Error in '"+head.toString()+"':'"+head.e.toString()+"' need to be a list");
+//			return null;		
 		}
 	}
 
 	@Override
-	public Type V(IfThenElse ite, TypeMap tm) {
-		Log.debug("validate IfThenElse called...");
+	public Type V(IfThenElse ite, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate IfThenElse called...");
 		//check condition
-		Log.debug(tm.toString());
+		//Log.debug(tm.toString());
 		Type t1 = V(ite.condition,tm);
-		Log.debug(tm.toString());
+		//Log.debug(tm.toString());
 		if(t1 == null)
 		{
 			return null;
 		}
 		else if(!(t1 instanceof BoolType))
 		{
-			Log.error("Type Error in '"+ite.condition.toString()+"', BOOL expected..");
-			return null;
+			throw new SimPLTypeException("Type Error in '"+ite.condition.toString()+"', BOOL expected..");
+//			return null;
 		}
 		
 		Type t3 = V(ite.thenClause,tm);
@@ -371,20 +385,20 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			Log.error("Type Error in '"+ite.toString()+"',type is different between thenClause:"+ t3.toString() +" and elseClause:"+t2.toString());
-			return null;
+			throw new SimPLTypeException("Type Error in '"+ite.toString()+"',type is different between thenClause:"+ t3.toString() +" and elseClause:"+t2.toString());
+//			return null;
 		}
 	}
 
 	@Override
 	public Type V(IntValue intValue, TypeMap tm) {
-		Log.debug("validate IntValue called...");
+		//Log.debug("validate IntValue called...");
 		return new IntType();
 	}
 
 	@Override
-	public Type V(LetInEnd letin, TypeMap tm) {
-		Log.debug("validate LetInEnd called...");
+	public Type V(LetInEnd letin, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate LetInEnd called...");
 		//first check the var redefinition
 //		if(tm.contains(letin.x.name))
 //		{
@@ -412,19 +426,19 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			//Log.debug("letin.definition failed..");
+			////Log.debug("letin.definition failed..");
 			return null;
 		}
-		Log.debug("after definition let..");
-		Log.debug(newTm.toString());
+		//Log.debug("after definition let..");
+		//Log.debug(newTm.toString());
 		
 		Type bodyType = V(letin.body,newTm);
 		return bodyType;
 	}
 
 	@Override
-	public Type V(List list, TypeMap tm) {
-		Log.debug("validate List called...");
+	public Type V(List list, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate List called...");
 		Type t1 = V(list.head,tm);
 		Type t2 = V(list.tail,tm);
 		
@@ -447,14 +461,14 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		
 		else
 		{
-			Log.error("Type Error in '"+list.toString()+"'");
-			return null;
+			throw new SimPLTypeException("Type Error in '"+list.toString()+"'");
+//			return null;
 		}
 	}
 
 	@Override
 	public Type V(Nil nil, TypeMap tm) {
-		Log.debug("validate Nil called...");
+		//Log.debug("validate Nil called...");
 		ListType lt = new ListType();
 		lt.isNil = true;
 		return lt;
@@ -462,13 +476,13 @@ public class ComplilerValidator implements IComplieTimeValidator{
 
 	@Override
 	public Type V(Nop nop, TypeMap tm) {
-		Log.debug("validate Nop called...");
+		//Log.debug("validate Nop called...");
 		return new UnitType();
 	}
 
 	@Override
-	public Type V(Pair pair, TypeMap tm) {
-		Log.debug("validate Pair called...");
+	public Type V(Pair pair, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Pair called...");
 		Type t1 = V(pair.e1,tm);
 		Type t2 = V(pair.e2,tm);
 		
@@ -483,16 +497,16 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	}
 
 	@Override
-	public Type V(Sequence seq, TypeMap tm) {
-		Log.debug("validate Sequence called...");
+	public Type V(Sequence seq, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Sequence called...");
 		V(seq.e1,tm);
 		Type t = V(seq.e2, tm);
 		return t;
 	}
 
 	@Override
-	public Type V(Tail tail, TypeMap tm) {
-		Log.debug("validate Tail called...");
+	public Type V(Tail tail, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Tail called...");
 		Type et = V(tail.e, tm);
 		if(et == null)
 		{
@@ -501,16 +515,16 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		
 		if(!(et instanceof ListType))
 		{
-			Log.error("Type Error in '"+tail.toString()+"'");
-			return null;
+			throw new SimPLTypeException("Type Error in '"+tail.toString()+"'");
+//			return null;
 		}
 		else
 			return et;
 	}
 
 	@Override
-	public Type V(UnaryOperation uop, TypeMap tm) {
-		Log.debug("validate UnaryOperation called...");
+	public Type V(UnaryOperation uop, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate UnaryOperation called...");
 		String op = uop.getOperator();
 		if(op.equals("~"))
 		{
@@ -525,8 +539,9 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else
 			{
-				Log.error("Type Error in "+uop.toString()+","+uop.e.toString()+" expected to be a INT");
-				return null;
+				//Log.error("Type Error in "+uop.toString()+","+uop.e.toString()+" expected to be a INT");
+				throw new SimPLTypeException("Type Error in "+uop.toString()+","+uop.e.toString()+" expected to be a INT");
+				//return null;
 			}
 		}
 		else if(op.equals("not"))
@@ -542,8 +557,9 @@ public class ComplilerValidator implements IComplieTimeValidator{
 			}
 			else
 			{
-				Log.error("Type Error in '"+uop.toString()+"', '"+uop.e.toString()+"' expected to be a BOOL");
-				return null;
+				//Log.error("Type Error in '"+uop.toString()+"', '"+uop.e.toString()+"' expected to be a BOOL");
+				//return null;
+				throw new SimPLTypeException("Type Error in '"+uop.toString()+"', '"+uop.e.toString()+"' expected to be a BOOL");
 			}
 		}
 		Log.error("should  not reach here...");
@@ -552,34 +568,34 @@ public class ComplilerValidator implements IComplieTimeValidator{
 
 	@Override
 	public Type V(Value v, TypeMap tm) {
-		Log.debug("validate Value called...");
+		//Log.debug("validate Value called...");
 		return null;
 	}
 
 	@Override
-	public Type V(Variable var, TypeMap tm) {
-		Log.debug("validate Variable called...");
+	public Type V(Variable var, TypeMap tm) throws SimPLNotDefinedException {
+		//Log.debug("validate Variable called...");
 		if(!tm.contains(var.name))
 		{
-			Log.error("variable '"+var.name+"' not declared..");
-			return null;
+//			Log.error("variable '"+var.name+"' not declared..");
+//			return null;
+			throw new SimPLNotDefinedException("variable '"+var.name+"' not declared..");
 		}
 		return tm.get(var.name);
 	}
 	
-	private Type check_or_set(Variable var, TypeMap tm, Type t)
+	private Type check_or_set(Variable var, TypeMap tm, Type t) throws SimPLNotDefinedException
 	{
-		Log.debug("check_or_set Variable "+var.name+" called,"+t.toString()+" expected..");
+		//Log.debug("check_or_set Variable "+var.name+" called,"+t.toString()+" expected..");
 		if(!tm.contains(var.name))
 		{
-			Log.error("variable '"+var.name+"' not declared..");
-			return null;
+			throw new SimPLNotDefinedException("variable '"+var.name+"' not declared..");
 		}
 		//check type
 		Type tvar = tm.get(var.name);
 		if(tvar instanceof UnknownType)
 		{
-			Log.debug("lazy set type of '"+var.name+"' to "+t.toString());
+			//Log.debug("lazy set type of '"+var.name+"' to "+t.toString());
 			//lazy set
 			tm.set(var.name, t);
 		}
@@ -588,29 +604,29 @@ public class ComplilerValidator implements IComplieTimeValidator{
 	}
 
 	@Override
-	public Type V(WhileDoEnd wde, TypeMap tm) {
-		Log.debug("validate WhileDoEnd called...");
+	public Type V(WhileDoEnd wde, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate WhileDoEnd called...");
 		Type t1 = V(wde.condition,tm);
 		Type t2 = V(wde.body,tm);
 		
 		if(!(t1 instanceof BoolType))
 		{
-			Log.error("Type Error in While,'"+wde.condition.toString()+"' need to be of type BOOL");
-			return null;
+			throw new SimPLTypeException("Type Error in While,'"+wde.condition.toString()+"' need to be of type BOOL");
+			//return null;
 		}
 		
 		if(!(t2 instanceof UnitType))
 		{
-			Log.error("Type Error in While,'"+wde.body.toString()+"' need to be of type UNIT");
-			return null;
+			throw new SimPLTypeException("Type Error in While,'"+wde.body.toString()+"' need to be of type UNIT");
+			//return null;
 		}
 		
 		return new UnitType();
 	}
 
 	@Override
-	public Type V(Assignment assign, TypeMap tm) {
-		Log.debug("validate Assignment called...");
+	public Type V(Assignment assign, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException {
+		//Log.debug("validate Assignment called...");
 		Type t1 = V(assign.var,tm);
 		Type t2 = V(assign.val,tm);
 		if(t1 == null || t2 == null)
@@ -639,8 +655,8 @@ public class ComplilerValidator implements IComplieTimeValidator{
 		}
 		else
 		{
-			Log.error("Type Error in '"+assign.toString()+"':"+assign.var.toString()+"->"+t1.toString()+";"+assign.val.toString()+"->"+t2.toString());
-			return null;
+			throw new SimPLTypeException("Type Error in '"+assign.toString()+"':"+assign.var.toString()+"->"+t1.toString()+";"+assign.val.toString()+"->"+t2.toString());
+			//return null;
 		}
 	}
 

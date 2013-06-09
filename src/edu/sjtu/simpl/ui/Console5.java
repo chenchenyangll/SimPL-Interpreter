@@ -96,6 +96,25 @@ public class Console5 {
 				// e.printStackTrace();
 				continue;
 			}
+			
+			Log.debug("..................complier time........................");
+
+			Type t = null;
+			try {
+				ComplilerValidator validator = new ComplilerValidator();
+
+				t = validator.V(root, new TypeMap());
+				// if(t!=null)
+				// Log.info(t.toString());
+			} catch (Exception e) {
+				// e.printStackTrace();
+				// continue;
+			}
+
+			if (t == null) {
+				os.println("SimPL> Type Error!");
+				continue;
+			}
 
 			Value v = null;
 			//Log.debug(".................run time.........................");

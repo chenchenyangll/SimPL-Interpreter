@@ -1,5 +1,6 @@
 package edu.sjtu.simpl.ui;
 
+import edu.sjtu.simpl.exception.SimPLNotDefinedException;
 import edu.sjtu.simpl.exception.SimPLTypeException;
 import edu.sjtu.simpl.exception.SimPLRuntimeException;
 import edu.sjtu.simpl.grammar.SimPL;
@@ -7,11 +8,9 @@ import edu.sjtu.simpl.grammar.SimpleNode;
 import edu.sjtu.simpl.runtime.Executor;
 import edu.sjtu.simpl.runtime.Memory;
 import edu.sjtu.simpl.runtime.RunTimeState;
-import edu.sjtu.simpl.runtime.StateFrame;
 import edu.sjtu.simpl.syntax.Expression;
 import edu.sjtu.simpl.syntax.Value;
 import edu.sjtu.simpl.type.Type;
-import edu.sjtu.simpl.util.Log;
 import edu.sjtu.simpl.validate.ComplilerValidator;
 import edu.sjtu.simpl.validate.TypeMap;
 import edu.sjtu.simpl.visitor.SyntaxVisitor;
@@ -55,7 +54,25 @@ public class Console4 {
 				continue;
 			}
 			//Log.debug("..................complier time........................");
-		
+			Type t = null;
+			try {
+				ComplilerValidator validator = new ComplilerValidator();
+
+				t = validator.V(root, new TypeMap());
+				// if(t!=null)
+				// Log.info(t.toString());
+			} catch(SimPLTypeException e)
+			{
+				System.out.println("SimPL> Type Error:"+e.getMessage());
+			}catch(SimPLNotDefinedException e)
+			{
+				System.out.println("SimPL> Runtime Error:"+e.getMessage());
+			}
+			
+			if (t == null) {
+//				System.out.println("SimPL> Type Error!");
+				continue;
+			}
 			
 			Value v = null;
 			//Log.debug(".................run time.........................");

@@ -1,5 +1,7 @@
 package edu.sjtu.simpl.validate;
 
+import edu.sjtu.simpl.exception.SimPLNotDefinedException;
+import edu.sjtu.simpl.exception.SimPLTypeException;
 import edu.sjtu.simpl.syntax.AnonymousFunction;
 import edu.sjtu.simpl.syntax.Application;
 import edu.sjtu.simpl.syntax.Assignment;
@@ -26,27 +28,27 @@ import edu.sjtu.simpl.syntax.WhileDoEnd;
 import edu.sjtu.simpl.type.Type;
 
 public interface IComplieTimeValidator {
-	public Type V( Expression e, TypeMap tm);
-	public Type V( AnonymousFunction fun, TypeMap tm);
-	public Type V( Application app, TypeMap tm);
-	public Type V( Assignment assign, TypeMap tm);
-	public Type V( BinaryOperation bop, TypeMap tm);
-	public Type V( BoolValue bv, TypeMap tm);
-	public Type V( Bracket brket, TypeMap tm);
-	public Type V( First fst, TypeMap tm);
-	public Type V( Head head, TypeMap tm);
-	public Type V( IfThenElse ite, TypeMap tm);
-	public Type V( IntValue intValue, TypeMap tm);
-	public Type V( LetInEnd letin, TypeMap tm);
-	public Type V( List list, TypeMap tm);
-	public Type V( Nil nil, TypeMap tm);
-	public Type V( Nop nop, TypeMap tm);
-	public Type V( Pair pair, TypeMap tm);
-	public Type V( Second scd, TypeMap tm);
-	public Type V( Sequence seq, TypeMap tm);
-	public Type V( Tail tail, TypeMap tm);
-	public Type V( UnaryOperation uop, TypeMap tm);
-	public Type V( Value v, TypeMap tm);
-	public Type V( Variable var, TypeMap tm);
-	public Type V( WhileDoEnd wde, TypeMap tm);
+	public Type V( Expression e, TypeMap tm)throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( AnonymousFunction fun, TypeMap tm)throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Application app, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Assignment assign, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( BinaryOperation bop, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( BoolValue bv, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Bracket brket, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( First fst, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Head head, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( IfThenElse ite, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( IntValue intValue, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( LetInEnd letin, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( List list, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Nil nil, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Nop nop, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Pair pair, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Second scd, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Sequence seq, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Tail tail, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( UnaryOperation uop, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Value v, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( Variable var, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
+	public Type V( WhileDoEnd wde, TypeMap tm) throws SimPLNotDefinedException, SimPLTypeException;
 }
