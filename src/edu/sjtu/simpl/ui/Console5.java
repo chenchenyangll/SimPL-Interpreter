@@ -96,7 +96,7 @@ public class Console5 {
 				continue;
 			}
 			
-			Log.debug("..................complier time........................");
+			//Log.debug("..................complier time........................");
 
 			//Log.debug("..................complier time........................");
 			Type t = null;
