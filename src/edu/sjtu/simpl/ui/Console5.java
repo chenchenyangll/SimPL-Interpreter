@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintStream;
 
+import edu.sjtu.simpl.exception.SimPLNotDefinedException;
 import edu.sjtu.simpl.exception.SimPLRuntimeException;
 import edu.sjtu.simpl.exception.SimPLTypeException;
 import edu.sjtu.simpl.grammar.SimPL;
@@ -92,27 +93,26 @@ public class Console5 {
 				root = (Expression) n.jjtAccept(visitor, null);
 				// System.out.println(root.toString());
 			} catch (Exception e) {
-				// System.out.println("visitor error!");
-				// e.printStackTrace();
 				continue;
 			}
 			
 			Log.debug("..................complier time........................");
 
+			//Log.debug("..................complier time........................");
 			Type t = null;
 			try {
 				ComplilerValidator validator = new ComplilerValidator();
 
 				t = validator.V(root, new TypeMap());
-				// if(t!=null)
-				// Log.info(t.toString());
-			} catch (Exception e) {
-				// e.printStackTrace();
-				// continue;
+			} catch(SimPLTypeException e)
+			{
+				os.println(cmdPrefix + "Type Error:"+e.getMessage());
+			}catch(SimPLNotDefinedException e)
+			{
+				os.println(cmdPrefix + "Runtime Error:"+e.getMessage());
 			}
-
+			
 			if (t == null) {
-				os.println("SimPL> Type Error!");
 				continue;
 			}
 
